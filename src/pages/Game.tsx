@@ -7,8 +7,11 @@ export default function Game() {
   const [error, setError] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState("");
   const [joinGameCode, setJoinGameCode] = useState("");
-  const [role, setRole] = useState<string | null>("");
+  const [role, setRole] = useState<string | null>("player1");
   const [status, setStatus] = useState<string | null>("");
+  const [player1Choice, setPlayer1Choice] = useState<string | null>(null);
+  const [player2Choice, setPlayer2Choice] = useState<string | null>(null);
+  const [currentRound, setCurrentRound] = useState<number>(1);
 
   useEffect(() => {
     const fetchGame = async () => {
@@ -36,6 +39,7 @@ export default function Game() {
             : data.player2_name
         );
         setJoinGameCode(data.code);
+        //setCurrentRound(data.current_round);
       } catch (err: any) {
         setError(err.message);
       }
@@ -53,7 +57,19 @@ export default function Game() {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      console.log("WebSocket data received:", data);
+
       setStatus(data.message);
+
+      if (data.player1_choice) {
+        setPlayer1Choice(data.player1_choice);
+      }
+      if (data.player2_choice) {
+        setPlayer2Choice(data.player2_choice);
+      }
+      if (data.next_round) {
+        setCurrentRound(data.next_round);
+      }
     };
 
     ws.onerror = (error) => {
@@ -66,15 +82,68 @@ export default function Game() {
     };
 
     window.addEventListener("beforeunload", handleUnload);
+
+    // return () => {
+    //   ws.close();
+    //   window.removeEventListener("beforeunload", handleUnload);
+    // };
   }, [id]);
+
+  const chooseColor = async (choice: string) => {
+    console.log("Sending POST request:", {
+      game_id: id,
+      round_number: currentRound,
+      player_name: playerName,
+      choice: choice,
+    });
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/game/${id}/round/${currentRound}/choice`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            game_id: id,
+            round_number: currentRound,
+            player_name: playerName,
+            choice: choice,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log(data.message);
+    } catch (error) {
+      //console.error("Error choosing color:", error);
+      setError(`Failed to submit choice: ${error}`);
+    }
+  };
 
   return (
     <>
       <div>{error}</div>
       <div>Game ID: {id}</div>
       <div>Player: {playerName}</div>
-      {role == "player1" && <div>Code: {joinGameCode}</div>}
-      {status}
+      {role === "player1" && <div>Code: {joinGameCode}</div>}
+      <div>Status: {status}</div>
+      <div>Current Round: {currentRound}</div>
+      <div>Player 1 Choice: {player1Choice || "Waiting for choice"}</div>
+      <div>Player 2 Choice: {player2Choice || "Waiting for choice"}</div>
+      <div>
+        <button className="p-2 bg-red-500" onClick={() => chooseColor("RED")}>
+          Choose Red
+        </button>
+        <button className="p-2 bg-blue-500" onClick={() => chooseColor("BLUE")}>
+          Choose Blue
+        </button>
+      </div>
     </>
   );
 }
