@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
-  const [response, setResponse] = useState<string | null>(null);
+  let navigate = useNavigate();
+
   const [error, setError] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState("");
   const [joinGameCode, setJoinGameCode] = useState("");
@@ -27,7 +29,10 @@ export default function Dashboard() {
       }
 
       const data = await response.json();
-      setResponse(data.code);
+
+      await localStorage.setItem("role", data.role);
+
+      navigate(`/game/${data.game_id}`);
     } catch (err: any) {
       setError(err.message);
     }
@@ -57,8 +62,9 @@ export default function Dashboard() {
         throw new Error(`Error: ${response.statusText}`);
       }
 
-      //const data = await response.json();
-      setResponse("Joined!");
+      const data = await response.json();
+      await localStorage.setItem("role", data.role);
+      navigate(`/game/${data.game_id}`);
     } catch (err: any) {
       setError(err.message);
     }
@@ -106,7 +112,6 @@ export default function Dashboard() {
           </div>
         </section>
         {error && <div className="mt-4 text-red-500">Error: {error}</div>}
-        {response && <div className="mt-4 text-green-500">{response}</div>}
       </section>
     </>
   );
