@@ -10,7 +10,9 @@ export default function Game() {
   const [role, setRole] = useState<string | null>("player1");
   const [status, setStatus] = useState<string | null>("");
   const [player1Choice, setPlayer1Choice] = useState<string | null>(null);
+  const [player1Score, setPlayer1Score] = useState<number | null>(null);
   const [player2Choice, setPlayer2Choice] = useState<string | null>(null);
+  const [player2Score, setPlayer2Score] = useState<number | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(1);
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export default function Game() {
             : data.player2_name
         );
         setJoinGameCode(data.code);
+
         //setCurrentRound(data.current_round);
       } catch (err: any) {
         setError(err.message);
@@ -67,6 +70,10 @@ export default function Game() {
       if (data.player2_choice) {
         setPlayer2Choice(data.player2_choice);
       }
+
+      if (data.player1_score) setPlayer1Score(data.player1_score);
+      if (data.player2_score) setPlayer2Score(data.player2_score);
+
       if (data.next_round) {
         setCurrentRound(data.next_round);
       }
@@ -134,6 +141,8 @@ export default function Game() {
       {role === "player1" && <div>Code: {joinGameCode}</div>}
       <div>Status: {status}</div>
       <div>Current Round: {currentRound}</div>
+      <div>Player 1 Score: {player1Score || "0"}</div>
+      <div>Player 2 Score: {player2Score || "0"}</div>
       <div>Player 1 Choice: {player1Choice || "Waiting for choice"}</div>
       <div>Player 2 Choice: {player2Choice || "Waiting for choice"}</div>
       <div>
