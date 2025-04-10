@@ -29,9 +29,7 @@ export default function Dashboard() {
       }
 
       const data = await response.json();
-
       await localStorage.setItem("role", data.role);
-
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
       setError(err.message);
@@ -71,48 +69,106 @@ export default function Dashboard() {
   };
 
   return (
-    <>
-      <section className="flex flex-col justify-center items-center h-full">
-        <div className="flex flex-row">
-          <h1 className="text-red-500">RED</h1>
-          <h1 className="text-purple-500">_</h1>
-          <h1 className="text-blue-500">BLUE</h1>
-        </div>
-        <div className="pt-4">Choose a name</div>
+    <div className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-red-400 via-purple-200 to-blue-400 text-gray-800 p-4">
+      <h1 className="text-6xl font-extrabold text-center mt-6 mb-4">
+        <span className="text-red-600">RED</span>
+        <span className="text-purple-700">_</span>
+        <span className="text-blue-600">BLUE</span>
+      </h1>
+
+      <div className="w-full max-w-md mt-6 flex flex-col items-center">
         <input
           type="text"
-          className="border p-2 mr-2"
+          className="w-full border border-gray-400 rounded p-2 text-center mb-4"
           placeholder="Enter your name"
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
         />
 
-        <section className="flex flex-row pt-4">
-          <div className="flex flex-col items-center justify-center gap-2 bg-gray-300 p-6 rounded-l-md">
-            <h1>Create a game</h1>
-            <button className="bg-green-500 p-2" onClick={createGame}>
-              Create game
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full">
+          <div className="bg-white bg-opacity-80 rounded p-6 shadow-md w-full">
+            <h2 className="text-xl font-bold text-center mb-2">Create a Game</h2>
+            <button
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded"
+              onClick={createGame}
+            >
+              Create Game
             </button>
           </div>
 
-          <div className="flex flex-col justify-center items-center h-full gap-2 bg-gray-400 p-6 rounded-r-md">
-            <h1>Join a game</h1>
-            <div>
-              <input
-                type="text"
-                className="border p-2 mr-2"
-                placeholder="Game code"
-                value={joinGameCode}
-                onChange={(e) => setJoinGameCode(e.target.value)}
-              />
-              <button className="bg-green-500 p-2" onClick={joinGame}>
-                Join game
-              </button>
-            </div>
+          <div className="bg-white bg-opacity-80 rounded p-6 shadow-md w-full">
+            <h2 className="text-xl font-bold text-center mb-2">Join a Game</h2>
+            <input
+              type="text"
+              className="w-full border border-gray-400 rounded p-2 text-center mb-2"
+              placeholder="Game code"
+              value={joinGameCode}
+              onChange={(e) => setJoinGameCode(e.target.value)}
+            />
+            <button
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded"
+              onClick={joinGame}
+            >
+              Join Game
+            </button>
           </div>
-        </section>
-        {error && <div className="mt-4 text-red-500">Error: {error}</div>}
-      </section>
-    </>
+        </div>
+
+        {error && <div className="mt-4 text-red-600 font-semibold">Error: {error}</div>}
+
+        <div className="mt-10 bg-white bg-opacity-70 p-6 rounded shadow-lg max-w-2xl">
+          <h2 className="text-2xl font-bold mb-4 text-center">How to Play</h2>
+          <p className="mb-2">
+            Once a game started, the two users will play a total of <strong>10 rounds</strong>.
+            In each round, they choose between two colors: <span className="text-red-600 font-bold">RED</span> or <span className="text-blue-600 font-bold">BLUE</span>.
+          </p>
+          <table className="w-full text-center mb-4 border border-gray-400">
+            <thead>
+              <tr className="bg-gray-300">
+                <th>Player 1</th>
+                <th>Player 2</th>
+                <th>Player 1 Score</th>
+                <th>Player 2 Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>RED</td>
+                <td>RED</td>
+                <td>+3</td>
+                <td>+3</td>
+              </tr>
+              <tr className="bg-gray-100">
+                <td>RED</td>
+                <td>BLUE</td>
+                <td>-6</td>
+                <td>+6</td>
+              </tr>
+              <tr>
+                <td>BLUE</td>
+                <td>RED</td>
+                <td>+6</td>
+                <td>-6</td>
+              </tr>
+              <tr className="bg-gray-100">
+                <td>BLUE</td>
+                <td>BLUE</td>
+                <td>-3</td>
+                <td>-3</td>
+              </tr>
+            </tbody>
+          </table>
+          <p className="mb-2">
+            During the game, players can see their score for each past round (e.g. +3, -6, etc.) as well as their total score.
+          </p>
+          <p className="mb-2">
+            <strong>Rounds 9 and 10</strong> have <strong>doubled score</strong> values.
+          </p>
+          <p>
+            <strong>WINNING CONDITION:</strong> A player with a positive score at the end is considered a <span className="text-green-600 font-bold">winner</span>. A player with a score ≤ 0 has <span className="text-red-600 font-bold">lost</span>.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
