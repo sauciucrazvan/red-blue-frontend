@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [error, setError] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState("");
@@ -86,8 +86,8 @@ export default function Dashboard() {
         />
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full">
-          <div className="bg-white bg-opacity-80 rounded p-6 shadow-md w-full">
-            <h2 className="text-xl font-bold text-center mb-2">Create a Game</h2>
+          <div className="w-full max-w-xs h-60 border border-white bg-white bg-opacity-10 backdrop-blur-md rounded p-6 shadow-md flex flex-col justify-center items-center text-center">
+            <h2 className="text-xl font-bold mb-4">Create a Game</h2>
             <button
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded"
               onClick={createGame}
@@ -96,8 +96,8 @@ export default function Dashboard() {
             </button>
           </div>
 
-          <div className="bg-white bg-opacity-80 rounded p-6 shadow-md w-full">
-            <h2 className="text-xl font-bold text-center mb-2">Join a Game</h2>
+          <div className="w-full max-w-xs h-60 border border-white bg-white bg-opacity-10 backdrop-blur-md rounded p-6 shadow-md flex flex-col justify-center items-center text-center">
+            <h2 className="text-xl font-bold mb-2">Join a Game</h2>
             <input
               type="text"
               className="w-full border border-gray-400 rounded p-2 text-center mb-2"
@@ -116,10 +116,10 @@ export default function Dashboard() {
 
         {error && <div className="mt-4 text-red-600 font-semibold">Error: {error}</div>}
 
-        <div className="mt-10 bg-white bg-opacity-70 p-6 rounded shadow-lg max-w-2xl">
+        <div className="mt-10 w-full max-w-2xl border border-white bg-white bg-opacity-10 backdrop-blur-md p-6 rounded shadow-lg">
           <h2 className="text-2xl font-bold mb-4 text-center">How to Play</h2>
           <p className="mb-2">
-            Once a game started, the two users will play a total of <strong>10 rounds</strong>.
+            Once a game starts, the two users will play a total of <strong>10 rounds</strong>.
             In each round, they choose between two colors: <span className="text-red-600 font-bold">RED</span> or <span className="text-blue-600 font-bold">BLUE</span>.
           </p>
           <table className="w-full text-center mb-4 border border-gray-400">
@@ -165,7 +165,7 @@ export default function Dashboard() {
             <strong>Rounds 9 and 10</strong> have <strong>doubled score</strong> values.
           </p>
           <p>
-            <strong>WINNING CONDITION:</strong> A player with a positive score at the end is considered a <span className="text-green-600 font-bold">winner</span>. A player with a score ≤ 0 has <span className="text-red-600 font-bold">lost</span>.
+            <strong>WINNING CONDITION:</strong> A player with a positive score at the end is considered a <span className="text-green-600 font-bold">winner</span>. A player with a negative or null score has <span className="text-red-600 font-bold">lost</span>.
           </p>
         </div>
       </div>
