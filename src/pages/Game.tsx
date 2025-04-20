@@ -186,11 +186,29 @@ const Game = () => {
       <div className="w-full p-4 bg-gray-700 text-center text-xl font-bold">
         <div className="flex justify-between">
           <div className="flex-1 pl-4">
-            {data!.player1_name} ({data.player1_score})
+            {localStorage.getItem("role") === "player1" ? (
+              <>
+                <span className="text-blue-400">{data!.player1_name}</span> (
+                {data.player1_score})
+              </>
+            ) : (
+              <>
+                <span className="text-blue-400">{data!.player2_name}</span> (
+                {data.player2_score})
+              </>
+            )}
           </div>
           <div>Round: {data!.current_round}</div>
           <div className="flex-1 pl-4">
-            {data!.player2_name} ({data.player2_score})
+            {localStorage.getItem("role") === "player1" ? (
+              <>
+                {data!.player2_name} ({data.player2_score})
+              </>
+            ) : (
+              <>
+                {data!.player1_name} ({data.player1_score})
+              </>
+            )}
           </div>
         </div>
       </div>
