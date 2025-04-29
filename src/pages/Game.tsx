@@ -12,7 +12,6 @@ const Game = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
-  const [role, setRole] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState<string | null>(null);
 
   const handleChoice = (color: string) => {
@@ -50,12 +49,11 @@ const Game = () => {
         if (!localStorage.getItem("role")) {
           setError("Player role is not defined!");
           setLoading(false);
-          throw new Error(`Error: Player role is not defined`);
+          throw new Error(`Player role is not defined`);
         }
 
         const data = await response.json();
 
-        setRole(localStorage.getItem("role"));
         setData(data);
 
         setPlayerName(
@@ -108,6 +106,11 @@ const Game = () => {
               }));
 
               setSelectedColor(null);
+            }
+
+            if (wsData.game_state === "finished") {
+              navigate(`/result/${id}`);
+              return;
             }
           } catch (err) {
             console.error("Failed to parse WebSocket message:", err);
