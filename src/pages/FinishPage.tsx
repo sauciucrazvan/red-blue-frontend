@@ -125,19 +125,24 @@ export default function FinishPage() {
           </tr>
         </thead>
         <tbody>
-          {data.rounds.map((round: any, index: number) => (
-            <tr key={index} className="odd:bg-gray-800 even:bg-gray-700">
-              <td className="border border-gray-500 px-4 py-2">
-                {round.round_number}
-              </td>
-              <td className="border border-gray-500 px-4 py-2">
-                {round.player1_choice || "N/A"} ({round.player1_score})
-              </td>
-              <td className="border border-gray-500 px-4 py-2">
-                {round.player2_choice || "N/A"} ({round.player2_score})
-              </td>
-            </tr>
-          ))}
+          {data.rounds.map(
+            // daca va intrebati de ce e verificarea aia cu != 0 e pentru ca suntem prea prosti sa putem sa o scoatem din backend, va rog sa nu o scoateti, va implor
+            (round: any, index: number) =>
+              round.player1_score != 0 &&
+              round.player2_score != 0 && (
+                <tr key={index} className="odd:bg-gray-800 even:bg-gray-700">
+                  <td className="border border-gray-500 px-4 py-2">
+                    {round.round_number}
+                  </td>
+                  <td className="border border-gray-500 px-4 py-2">
+                    {round.player1_choice || "N/A"} ({round.player1_score})
+                  </td>
+                  <td className="border border-gray-500 px-4 py-2">
+                    {round.player2_choice || "N/A"} ({round.player2_score})
+                  </td>
+                </tr>
+              )
+          )}
         </tbody>
       </table>
     </section>

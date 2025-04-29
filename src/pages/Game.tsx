@@ -45,8 +45,6 @@ const Game = () => {
           }
         );
 
-        //console.log("test");
-
         if (!response.ok) {
           if (response.status == 404) {
             navigate("/404");
@@ -97,6 +95,11 @@ const Game = () => {
           try {
             const wsData = JSON.parse(event.data);
 
+            if (!wsData.game_state && wsData.game_state === "finished") {
+              console.log("Player abandoned, navigating to summary...");
+              navigate(`/result/${id}`);
+            }
+
             if (wsData.next_round) {
               setData((prev: any) => ({
                 ...prev,
@@ -139,7 +142,7 @@ const Game = () => {
   const chooseColor = async (choice: string) => {
     try {
       const response = await fetch(
-        `http://localhost:8000/game/${id}/round/${
+        `http://localhost:8000/api/v1/game/${id}/round/${
           data?.current_round || 1
         }/choice`,
         {
@@ -167,6 +170,39 @@ const Game = () => {
     } catch (error: any) {
       console.error("Error choosing color:", error.message);
       setError(`Failed to submit choice: ${error.message}`);
+    }
+  };
+
+  const abandonGame = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/v1/game/${id}/abandon`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            game_id: id,
+            player_name: playerName,
+            token: localStorage.getItem("token"),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorDetail = await response.json();
+        throw new Error(`Error: ${errorDetail.detail || response.statusText}`);
+      }
+
+      const response_data = await response.json();
+      console.log(response_data.message);
+    } catch (error: any) {
+      console.error("Error abandoning the game:", error.message);
+      setError(`Failed to submit choice: ${error.message}`);
+    } finally {
+      navigate(`/result/${id}`);
+      return;
     }
   };
 
@@ -237,6 +273,10 @@ const Game = () => {
           ? `You selected: ${selectedColor}! Waiting for the opponent...`
           : "Please choose a color"}
       </div>
+
+      <button onClick={abandonGame} className="bg-red-500 p-2 rounded-md">
+        Abandon Game!
+      </button>
     </div>
   );
 };
