@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import WaitingLobby from "./WaitingLobby";
 import ErrorPage from "./ErrorPage";
 import LoadingPage from "./Loading";
+import WaitingLobby from "./WaitingLobby";
 
 const Game = () => {
   let { id } = useParams();
@@ -16,6 +16,7 @@ const Game = () => {
 
   const handleChoice = (color: string) => {
     if (selectedColor) return;
+
     setSelectedColor(color);
     chooseColor(color);
   };
@@ -84,18 +85,6 @@ const Game = () => {
         ws.onmessage = (event) => {
           try {
             const wsData = JSON.parse(event.data);
-            //console.log("WebSocket data received:", wsData);
-
-            // DEBUG STUFF
-            // if (wsData.message) {
-            //   console.log(wsData.message);
-            // }
-            // if (wsData.player1_choice) {
-            //   console.log("Player 1 chose:", wsData.player1_choice);
-            // }
-            // if (wsData.player2_choice) {
-            //   console.log("Player 2 chose:", wsData.player2_choice);
-            // }
 
             if (wsData.next_round) {
               setData((prev: any) => ({
@@ -137,13 +126,6 @@ const Game = () => {
   }, [id]);
 
   const chooseColor = async (choice: string) => {
-    // console.log("Sending POST request:", {
-    //   game_id: id,
-    //   round_number: data?.current_round || 0,
-    //   player_name: playerName,
-    //   choice: choice,
-    // });
-
     try {
       const response = await fetch(
         `http://localhost:8000/game/${id}/round/${
@@ -181,7 +163,7 @@ const Game = () => {
   if (data == null) return ErrorPage("Failed to fetch data!");
 
   if (data.player1_name == null || data.player2_name == null)
-    return WaitingLobby(data!.code);
+    return <WaitingLobby id={id!} game_code={data.code} />;
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
