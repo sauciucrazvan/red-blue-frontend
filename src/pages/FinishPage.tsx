@@ -16,12 +16,21 @@ export default function FinishPage() {
       try {
         setLoading(true);
         setError(null);
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("Invalid token.");
+          setLoading(false);
+          return;
+        }
+
         const response = await fetch(
           `http://localhost:8000/api/v1/game/${id}`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
           }
         );

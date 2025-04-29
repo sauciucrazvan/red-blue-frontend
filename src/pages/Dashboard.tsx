@@ -21,7 +21,9 @@ export default function Dashboard() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ player1_name: playerName }),
+        body: JSON.stringify({
+          player1_name: playerName,
+        }),
       });
 
       if (!response.ok) {
@@ -30,6 +32,7 @@ export default function Dashboard() {
 
       const data = await response.json();
       await localStorage.setItem("role", data.role);
+      await localStorage.setItem("token", data.token);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
       setError(err.message);
@@ -62,6 +65,7 @@ export default function Dashboard() {
 
       const data = await response.json();
       await localStorage.setItem("role", data.role);
+      await localStorage.setItem("token", data.token);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
       setError(err.message);
@@ -114,13 +118,17 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {error && <div className="mt-4 text-red-600 font-semibold">Error: {error}</div>}
+        {error && (
+          <div className="mt-4 text-red-600 font-semibold">Error: {error}</div>
+        )}
 
         <div className="mt-10 w-full max-w-2xl border border-white bg-white bg-opacity-10 backdrop-blur-md p-6 rounded shadow-lg">
           <h2 className="text-2xl font-bold mb-4 text-center">How to Play</h2>
           <p className="mb-2">
-            Once a game starts, the two users will play a total of <strong>10 rounds</strong>.
-            In each round, they choose between two colors: <span className="text-red-600 font-bold">RED</span> or <span className="text-blue-600 font-bold">BLUE</span>.
+            Once a game starts, the two users will play a total of{" "}
+            <strong>10 rounds</strong>. In each round, they choose between two
+            colors: <span className="text-red-600 font-bold">RED</span> or{" "}
+            <span className="text-blue-600 font-bold">BLUE</span>.
           </p>
           <table className="w-full text-center mb-4 border border-gray-400">
             <thead>
@@ -159,13 +167,19 @@ export default function Dashboard() {
             </tbody>
           </table>
           <p className="mb-2">
-            During the game, players can see their score for each past round (e.g. +3, -6, etc.) as well as their total score.
+            During the game, players can see their score for each past round
+            (e.g. +3, -6, etc.) as well as their total score.
           </p>
           <p className="mb-2">
-            <strong>Rounds 9 and 10</strong> have <strong>doubled score</strong> values.
+            <strong>Rounds 9 and 10</strong> have <strong>doubled score</strong>{" "}
+            values.
           </p>
           <p>
-            <strong>WINNING CONDITION:</strong> A player with a positive score at the end is considered a <span className="text-green-600 font-bold">winner</span>. A player with a negative or null score has <span className="text-red-600 font-bold">lost</span>.
+            <strong>WINNING CONDITION:</strong> A player with a positive score
+            at the end is considered a{" "}
+            <span className="text-green-600 font-bold">winner</span>. A player
+            with a negative or null score has{" "}
+            <span className="text-red-600 font-bold">lost</span>.
           </p>
         </div>
       </div>

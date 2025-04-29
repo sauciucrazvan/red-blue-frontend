@@ -26,15 +26,26 @@ const Game = () => {
       try {
         setLoading(true);
         setError(null);
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("Invalid token.");
+          setLoading(false);
+          return;
+        }
+
         const response = await fetch(
           `http://localhost:8000/api/v1/game/${id}`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
           }
         );
+
+        //console.log("test");
 
         if (!response.ok) {
           if (response.status == 404) {
@@ -141,6 +152,7 @@ const Game = () => {
             round_number: data?.current_round || 1,
             player_name: playerName,
             choice: choice,
+            token: localStorage.getItem("token"),
           }),
         }
       );
