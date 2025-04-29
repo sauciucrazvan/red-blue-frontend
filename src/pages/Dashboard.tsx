@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../config";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function Dashboard() {
 
     try {
       setError(null);
-      const response = await fetch("http://localhost:8000/api/v1/game/create", {
+      const response = await fetch(API_URL + "api/v1/game/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,7 +52,7 @@ export default function Dashboard() {
 
     try {
       setError(null);
-      const response = await fetch("http://localhost:8000/api/v1/game/join", {
+      const response = await fetch(API_URL + "api/v1/game/join", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import ErrorPage from "./ErrorPage";
 import LoadingPage from "./Loading";
 import WaitingLobby from "./WaitingLobby";
+import { API_URL, WS_URL } from "../config";
 
 const Game = () => {
   let { id } = useParams();
@@ -34,16 +35,13 @@ const Game = () => {
           return;
         }
 
-        const response = await fetch(
-          `http://localhost:8000/api/v1/game/${id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch(`${API_URL}api/v1/game/${id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (!response.ok) {
           if (response.status == 404) {
@@ -85,7 +83,7 @@ const Game = () => {
 
     const initializeWebSocket = () => {
       try {
-        ws = new WebSocket(`ws://localhost:8000/ws/game/${id}`);
+        ws = new WebSocket(`${WS_URL}ws/game/${id}`);
 
         ws.onopen = () => {
           console.log("WebSocket connection established");
@@ -142,9 +140,7 @@ const Game = () => {
   const chooseColor = async (choice: string) => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/v1/game/${id}/round/${
-          data?.current_round || 1
-        }/choice`,
+        `${API_URL}api/v1/game/${id}/round/${data?.current_round || 1}/choice`,
         {
           method: "POST",
           headers: {
@@ -175,20 +171,17 @@ const Game = () => {
 
   const abandonGame = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/v1/game/${id}/abandon`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            game_id: id,
-            player_name: playerName,
-            token: localStorage.getItem("token"),
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}api/v1/game/${id}/abandon`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          game_id: id,
+          player_name: playerName,
+          token: localStorage.getItem("token"),
+        }),
+      });
 
       if (!response.ok) {
         const errorDetail = await response.json();

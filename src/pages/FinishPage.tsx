@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import LoadingPage from "./Loading";
 import ErrorPage from "./ErrorPage";
+import { API_URL } from "../config";
 
 export default function FinishPage() {
   let { id } = useParams();
@@ -24,16 +25,13 @@ export default function FinishPage() {
           return;
         }
 
-        const response = await fetch(
-          `http://localhost:8000/api/v1/game/${id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch(`${API_URL}api/v1/game/${id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (!response.ok) {
           if (response.status === 404) {

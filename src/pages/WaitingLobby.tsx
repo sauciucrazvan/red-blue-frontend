@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { WS_URL } from "../config";
 
 interface WaitingLobbyProps {
   id: string;
@@ -20,7 +21,7 @@ export default function WaitingLobby(props: WaitingLobbyProps) {
 
     const initializeWebSocket = () => {
       try {
-        ws = new WebSocket(`ws://localhost:8000/ws/game/${props.id}`);
+        ws = new WebSocket(`${WS_URL}ws/game/${props.id}`);
 
         ws.onopen = () => {
           console.log("WebSocket connection established in WaitingLobby");
