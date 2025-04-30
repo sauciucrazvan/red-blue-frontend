@@ -4,6 +4,7 @@ import ErrorPage from "./ErrorPage";
 import LoadingPage from "./Loading";
 import WaitingLobby from "./WaitingLobby";
 import { API_URL, WS_URL } from "../config";
+import GameTimer from "./components/GameTimer";
 
 const Game = () => {
   let { id } = useParams();
@@ -104,6 +105,7 @@ const Game = () => {
                 current_round: wsData.next_round,
                 player1_score: wsData.player1_score,
                 player2_score: wsData.player2_score,
+                rounds: wsData.rounds,
               }));
 
               setSelectedColor(null);
@@ -224,7 +226,10 @@ const Game = () => {
               </>
             )}
           </div>
-          <div>Round: {data!.current_round}</div>
+          <div className="flex flex-col items-center">
+            <div>Round: {data!.current_round}</div>
+            <GameTimer data={data} />
+          </div>
           <div className="flex-1 pl-4">
             {localStorage.getItem("role") === "player1" ? (
               <>
