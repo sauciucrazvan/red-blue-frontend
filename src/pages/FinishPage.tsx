@@ -106,33 +106,61 @@ export default function FinishPage() {
 
       <h1 className="text-2xl font-bold mb-4">Rounds</h1>
 
-<table className="table-auto border-collapse w-full max-w-4xl border border-gray-200 text-black text-left shadow-md bg-transparent">
-  <thead>
-    <tr className="bg-white bg-opacity-30">
-      <th className="border border-gray-500 px-4 py-2">Round</th>
-      <th className="border border-gray-500 px-4 py-2">
-        {data.player1_name}'s Choice
-      </th>
-      <th className="border border-gray-500 px-4 py-2">
-        {data.player2_name}'s Choice
-      </th>
-    </tr>
-  </thead>
-  <tbody>
+      <table className="table-auto border-collapse w-full max-w-4xl border border-gray-200 text-black text-left shadow-md bg-transparent">
+        <thead>
+          <tr className="bg-white bg-opacity-30">
+            <th className="border border-gray-500 px-4 py-2 w-[5%]">Round</th>
+            <th className="border border-gray-500 px-4 py-2">
+              {data.player1_name}
+            </th>
+            <th className="border border-gray-500 px-4 py-2">
+              {data.player2_name}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
           {data.rounds.map(
-            // daca va intrebati de ce e verificarea aia cu != 0 e pentru ca suntem prea prosti sa putem sa o scoatem din backend, va rog sa nu o scoateti, va implor
             (round: any, index: number) =>
               round.player1_score != 0 &&
               round.player2_score != 0 && (
-                <tr key={index} className="odd:bg-ggray odd:bg-opacity-10 even:bg-white even:bg-opacity-20">
-                  <td className="border border-gray-500 px-4 py-2">
-                    {round.round_number}
+                <tr
+                  key={index}
+                  className="odd:bg-gray-700 odd:bg-opacity-10 even:bg-white even:bg-opacity-20"
+                >
+                  <td className="border border-gray-500 px-4 py-2 text-center">
+                    <b>{round.round_number}</b>
                   </td>
                   <td className="border border-gray-500 px-4 py-2">
-                    {round.player1_choice || "N/A"} ({round.player1_score})
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded"
+                        style={{
+                          backgroundColor:
+                            round.player1_choice === "RED"
+                              ? "red"
+                              : round.player1_choice === "BLUE"
+                              ? "blue"
+                              : "gray",
+                        }}
+                      ></div>
+                      <span>({round.player1_score})</span>
+                    </div>
                   </td>
                   <td className="border border-gray-500 px-4 py-2">
-                    {round.player2_choice || "N/A"} ({round.player2_score})
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded"
+                        style={{
+                          backgroundColor:
+                            round.player2_choice === "RED"
+                              ? "red"
+                              : round.player2_choice === "BLUE"
+                              ? "blue"
+                              : "gray",
+                        }}
+                      ></div>
+                      <span>({round.player2_score})</span>
+                    </div>
                   </td>
                 </tr>
               )

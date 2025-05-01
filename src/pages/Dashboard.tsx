@@ -142,28 +142,84 @@ export default function Dashboard() {
             </thead>
             <tbody>
               <tr>
-                <td>RED</td>
-                <td>RED</td>
-                <td>+3</td>
-                <td>+3</td>
+                <td className="text-center">
+                  <div className="flex items-center justify-center">
+                    <div
+                      className="w-6 h-6 rounded"
+                      style={{ backgroundColor: "red" }}
+                    ></div>
+                  </div>
+                </td>
+                <td className="text-center">
+                  <div className="flex items-center justify-center">
+                    <div
+                      className="w-6 h-6 rounded"
+                      style={{ backgroundColor: "red" }}
+                    ></div>
+                  </div>
+                </td>
+                <td className="text-center">+3</td>
+                <td className="text-center">+3</td>
               </tr>
               <tr className="bg-gray-100">
-                <td>RED</td>
-                <td>BLUE</td>
-                <td>-6</td>
-                <td>+6</td>
+                <td className="text-center">
+                  <div className="flex items-center justify-center">
+                    <div
+                      className="w-6 h-6 rounded"
+                      style={{ backgroundColor: "red" }}
+                    ></div>
+                  </div>
+                </td>
+                <td className="text-center">
+                  <div className="flex items-center justify-center">
+                    <div
+                      className="w-6 h-6 rounded"
+                      style={{ backgroundColor: "blue" }}
+                    ></div>
+                  </div>
+                </td>
+                <td className="text-center">-6</td>
+                <td className="text-center">+6</td>
               </tr>
               <tr>
-                <td>BLUE</td>
-                <td>RED</td>
-                <td>+6</td>
-                <td>-6</td>
+                <td className="text-center">
+                  <div className="flex items-center justify-center">
+                    <div
+                      className="w-6 h-6 rounded"
+                      style={{ backgroundColor: "blue" }}
+                    ></div>
+                  </div>
+                </td>
+                <td className="text-center">
+                  <div className="flex items-center justify-center">
+                    <div
+                      className="w-6 h-6 rounded"
+                      style={{ backgroundColor: "red" }}
+                    ></div>
+                  </div>
+                </td>
+                <td className="text-center">+6</td>
+                <td className="text-center">-6</td>
               </tr>
               <tr className="bg-gray-100">
-                <td>BLUE</td>
-                <td>BLUE</td>
-                <td>-3</td>
-                <td>-3</td>
+                <td className="text-center">
+                  <div className="flex items-center justify-center">
+                    <div
+                      className="w-6 h-6 rounded"
+                      style={{ backgroundColor: "blue" }}
+                    ></div>
+                  </div>
+                </td>
+                <td className="text-center">
+                  <div className="flex items-center justify-center">
+                    <div
+                      className="w-6 h-6 rounded"
+                      style={{ backgroundColor: "blue" }}
+                    ></div>
+                  </div>
+                </td>
+                <td className="text-center">-3</td>
+                <td className="text-center">-3</td>
               </tr>
             </tbody>
           </table>
