@@ -36,6 +36,7 @@ export default function Dashboard() {
       await localStorage.setItem("token", data.token);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
+      console.log(err);
       setError(err.message);
     }
   };
@@ -61,7 +62,8 @@ export default function Dashboard() {
       });
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+        const errorDetail = await response.json();
+        throw new Error(`Error: ${errorDetail.detail || response.statusText}`);
       }
 
       const data = await response.json();
@@ -69,6 +71,7 @@ export default function Dashboard() {
       await localStorage.setItem("token", data.token);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
+      console.log(err);
       setError(err.message);
     }
   };
@@ -89,6 +92,10 @@ export default function Dashboard() {
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
         />
+
+        {error && (
+          <div className="text-red-600 font-semibold pb-4">{error}</div>
+        )}
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full">
           <div className="w-full max-w-xs h-60 border border-white bg-white bg-opacity-10 backdrop-blur-md rounded p-6 shadow-md flex flex-col justify-center items-center text-center">
@@ -118,10 +125,6 @@ export default function Dashboard() {
             </button>
           </div>
         </div>
-
-        {error && (
-          <div className="mt-4 text-red-600 font-semibold">Error: {error}</div>
-        )}
 
         <div className="mt-10 w-full max-w-2xl border border-white bg-white bg-opacity-10 backdrop-blur-md p-6 rounded shadow-lg">
           <h2 className="text-2xl font-bold mb-4 text-center">How to Play</h2>
