@@ -96,7 +96,7 @@ const Game = () => {
 
             if (!wsData.game_state && wsData.game_state === "finished") {
               console.log("Player abandoned, navigating to summary...");
-              navigate(`/result/${id}`);
+              navigate(`/summary/${id}?r=abandon`);
             }
 
             if (wsData.next_round) {
@@ -112,7 +112,7 @@ const Game = () => {
             }
 
             if (wsData.game_state === "finished") {
-              navigate(`/result/${id}`);
+              navigate(`/summary/${id}?r=finish`);
               return;
             }
           } catch (err) {
@@ -196,7 +196,7 @@ const Game = () => {
       console.error("Error abandoning the game:", error.message);
       setError(`Failed to submit choice: ${error.message}`);
     } finally {
-      navigate(`/result/${id}`);
+      navigate(`/summary/${id}?r=abandon`);
       return;
     }
   };
