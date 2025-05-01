@@ -36,8 +36,9 @@ const GameTimer = ({ data }: { data: any }) => {
   }, [data]);
 
   return (
-    <div className="text-sm text-gray-300">
-      {timeRemaining > 0 ? timeRemaining : "0"} seconds left
+    <div className="text-sm font-outfit text-gray-300">
+      {/* {timeRemaining > 0 ? timeRemaining : "0"} */}
+      01:00 left
     </div>
   );
 };

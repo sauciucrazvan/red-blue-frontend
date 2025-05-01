@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
+import { FaArrowRight } from "react-icons/fa6";
+import { CgArrowLongRight } from "react-icons/cg";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -8,6 +10,8 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState("");
   const [joinGameCode, setJoinGameCode] = useState("");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const createGame = async () => {
     if (playerName.length < 3 || playerName.length > 16) {
@@ -77,171 +81,91 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-red-400 via-purple-200 to-blue-400 text-gray-800 p-4">
-      <h1 className="text-6xl font-extrabold text-center mt-6 mb-4">
-        <span className="text-red-600">RED</span>
-        <span className="text-purple-700">_</span>
-        <span className="text-blue-600">BLUE</span>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-500 via-neutral-800 to-red-500 text-white/90 p-4">
+      <h1 className="font-outfit text-6xl font-extrabold text-center mt-6 mb-4 bg-gradient-to-br from-[#D10000] from-50% to-[#027DFF] to-65% bg-clip-text text-transparent">
+        RED & BLUE.
       </h1>
 
-      <div className="w-full max-w-md mt-6 flex flex-col items-center">
+      <div className="w-full max-w-lg mt-2 flex flex-col items-center">
         <input
           type="text"
-          className="w-full border border-gray-400 rounded p-2 text-center mb-4"
+          className="w-full border border-gray-500 bg-gray-500 rounded p-2 text-center mb-4"
           placeholder="Enter your name"
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
         />
 
-        {error && (
+        {error && !isModalOpen && (
           <div className="text-red-600 font-semibold pb-4">{error}</div>
         )}
 
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full">
-          <div className="w-full max-w-xs h-60 border border-white bg-white bg-opacity-10 backdrop-blur-md rounded p-6 shadow-md flex flex-col justify-center items-center text-center">
-            <h2 className="text-xl font-bold mb-4">Create a Game</h2>
+        <section className="w-full max-w-lg h-auto flex flex-row justify-center items-center text-center gap-8">
+          <div className="w-full flex flex-col items-center gap-2">
             <button
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded"
+              className="w-full bg-blue-500 hover:from-red-600 hover:via-purple-600 hover:to-blue-600 text-white hover:text-gray-200 font-semibold py-2 px-4 rounded transition ease-in-out duration-1000"
               onClick={createGame}
             >
-              Create Game
+              Create lobby
             </button>
           </div>
 
-          <div className="w-full max-w-xs h-60 border border-white bg-white bg-opacity-10 backdrop-blur-md rounded p-6 shadow-md flex flex-col justify-center items-center text-center">
-            <h2 className="text-xl font-bold mb-2">Join a Game</h2>
-            <input
-              type="text"
-              className="w-full border border-gray-400 rounded p-2 text-center mb-2"
-              placeholder="Game code"
-              value={joinGameCode}
-              onChange={(e) => setJoinGameCode(e.target.value)}
-            />
+          <div className="w-px h-10 bg-gray-500"></div>
+
+          <div className="w-full flex flex-col items-center gap-2">
             <button
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded"
-              onClick={joinGame}
+              className="w-full bg-red-500 text-white hover:text-gray-200 font-semibold py-2 px-4 rounded transition ease-in-out duration-1000"
+              onClick={() => {
+                setIsModalOpen(true), setError(null);
+              }}
             >
-              Join Game
+              Join lobby
             </button>
           </div>
-        </div>
+        </section>
 
-        <div className="mt-10 w-full max-w-2xl border border-white bg-white bg-opacity-10 backdrop-blur-md p-6 rounded shadow-lg">
-          <h2 className="text-2xl font-bold mb-4 text-center">How to Play</h2>
-          <p className="mb-2">
-            Once a game starts, the two users will play a total of{" "}
-            <strong>10 rounds</strong>. In each round, they choose between two
-            colors: <span className="text-red-600 font-bold">RED</span> or{" "}
-            <span className="text-blue-600 font-bold">BLUE</span>.
-          </p>
-          <table className="w-full text-center mb-4 border border-gray-400">
-            <thead>
-              <tr className="bg-gray-300">
-                <th>Player 1</th>
-                <th>Player 2</th>
-                <th>Player 1 Score</th>
-                <th>Player 2 Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="text-center">
-                  <div className="flex items-center justify-center">
-                    <div
-                      className="w-6 h-6 rounded"
-                      style={{ backgroundColor: "red" }}
-                    ></div>
-                  </div>
-                </td>
-                <td className="text-center">
-                  <div className="flex items-center justify-center">
-                    <div
-                      className="w-6 h-6 rounded"
-                      style={{ backgroundColor: "red" }}
-                    ></div>
-                  </div>
-                </td>
-                <td className="text-center">+3</td>
-                <td className="text-center">+3</td>
-              </tr>
-              <tr className="bg-gray-100">
-                <td className="text-center">
-                  <div className="flex items-center justify-center">
-                    <div
-                      className="w-6 h-6 rounded"
-                      style={{ backgroundColor: "red" }}
-                    ></div>
-                  </div>
-                </td>
-                <td className="text-center">
-                  <div className="flex items-center justify-center">
-                    <div
-                      className="w-6 h-6 rounded"
-                      style={{ backgroundColor: "blue" }}
-                    ></div>
-                  </div>
-                </td>
-                <td className="text-center">-6</td>
-                <td className="text-center">+6</td>
-              </tr>
-              <tr>
-                <td className="text-center">
-                  <div className="flex items-center justify-center">
-                    <div
-                      className="w-6 h-6 rounded"
-                      style={{ backgroundColor: "blue" }}
-                    ></div>
-                  </div>
-                </td>
-                <td className="text-center">
-                  <div className="flex items-center justify-center">
-                    <div
-                      className="w-6 h-6 rounded"
-                      style={{ backgroundColor: "red" }}
-                    ></div>
-                  </div>
-                </td>
-                <td className="text-center">+6</td>
-                <td className="text-center">-6</td>
-              </tr>
-              <tr className="bg-gray-100">
-                <td className="text-center">
-                  <div className="flex items-center justify-center">
-                    <div
-                      className="w-6 h-6 rounded"
-                      style={{ backgroundColor: "blue" }}
-                    ></div>
-                  </div>
-                </td>
-                <td className="text-center">
-                  <div className="flex items-center justify-center">
-                    <div
-                      className="w-6 h-6 rounded"
-                      style={{ backgroundColor: "blue" }}
-                    ></div>
-                  </div>
-                </td>
-                <td className="text-center">-3</td>
-                <td className="text-center">-3</td>
-              </tr>
-            </tbody>
-          </table>
-          <p className="mb-2">
-            During the game, players can see their score for each past round
-            (e.g. +3, -6, etc.) as well as their total score.
-          </p>
-          <p className="mb-2">
-            <strong>Rounds 9 and 10</strong> have <strong>doubled score</strong>{" "}
-            values.
-          </p>
-          <p>
-            <strong>WINNING CONDITION:</strong> A player with a positive score
-            at the end is considered a{" "}
-            <span className="text-green-600 font-bold">winner</span>. A player
-            with a negative or null score has{" "}
-            <span className="text-red-600 font-bold">lost</span>.
-          </p>
-        </div>
+        {isModalOpen && (
+          <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center border border-gray-500 bg-white bg-opacity-10 backdrop-blur-md rounded p-6 shadow-md text-center gap-8">
+            <div className="bg-neutral-800 p-6 rounded shadow-lg max-w-sm w-full text-center">
+              <h2 className="text-xl font-bold mb-4 text-white/80">
+                Join a game
+              </h2>
+              {error && (
+                <div className="text-red-600 font-semibold pb-4">{error}</div>
+              )}
+              <input
+                type="text"
+                className="w-full border border-gray-500 bg-gray-500 rounded p-2 text-center mb-4"
+                placeholder="Game Code"
+                value={joinGameCode}
+                onChange={(e) => setJoinGameCode(e.target.value)}
+              />
+              <div className="flex justify-between">
+                <button
+                  className="bg-gray-600 hover:bg-gray-600/80 text-white px-4 py-2 rounded"
+                  onClick={() => {
+                    setIsModalOpen(false), setError(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-gradient-to-br from-red-400 to-blue-400 hover:from-blue-600 hover:via-purple-600 hover:to-red-600 text-white hover:text-gray-200 px-4 py-2 rounded inline-flex text-center items-center gap-1"
+                  onClick={joinGame}
+                >
+                  Join the game <FaArrowRight />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <section>
+          <a href="/how-to-play">
+            <span className="pt-4 text-gray-400 hover:text-gray-400/80 inline-flex items-center gap-1 hover:gap-2 transition ease-in-out duration-1000">
+              Don't know how to play? <CgArrowLongRight />
+            </span>
+          </a>
+        </section>
       </div>
     </div>
   );

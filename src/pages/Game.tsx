@@ -5,6 +5,7 @@ import LoadingPage from "./Loading";
 import WaitingLobby from "./WaitingLobby";
 import { API_URL, WS_URL } from "../config";
 import GameTimer from "./components/GameTimer";
+import { FaLock, FaMessage } from "react-icons/fa6";
 
 const Game = () => {
   let { id } = useParams();
@@ -96,7 +97,7 @@ const Game = () => {
 
             if (!wsData.game_state && wsData.game_state === "finished") {
               console.log("Player abandoned, navigating to summary...");
-              navigate(`/summary/${id}?r=abandon`);
+              //navigate(`/summary/${id}?r=abandon`);
             }
 
             if (wsData.next_round) {
@@ -112,7 +113,7 @@ const Game = () => {
             }
 
             if (wsData.game_state === "finished") {
-              navigate(`/summary/${id}?r=finish`);
+              //navigate(`/summary/${id}?r=finish`);
               return;
             }
           } catch (err) {
@@ -196,7 +197,7 @@ const Game = () => {
       console.error("Error abandoning the game:", error.message);
       setError(`Failed to submit choice: ${error.message}`);
     } finally {
-      navigate(`/summary/${id}?r=abandon`);
+      //navigate(`/summary/${id}?r=abandon`);
       return;
     }
   };
@@ -211,55 +212,103 @@ const Game = () => {
     return <WaitingLobby id={id!} game_code={data.code} />;
 
   return (
-    <section className="flex flex-col md:flex-row gap-1 bg-black items-start h-screen w-screen">
-      <div className="flex flex-col items-center justify-center h-[80%] md:h-screen bg-gray-900 text-white w-screen md:w-[80%]">
+    <section className="flex flex-col md:flex-row gap-1 bg-neutral-800 items-start h-screen w-screen">
+      <div className="flex flex-col items-center justify-center h-[80%] md:h-screen bg-neutral-800 text-white w-screen md:w-[80%]">
         {/* Header */}
-        <div className="w-full p-4 bg-gray-700 text-center text-xl font-bold">
-          <div className="flex justify-between">
+        <div className="w-full p-4 bg-neutral-800 text-center text-xl font-bold">
+          <div className="flex justify-between items-center">
             <div className="flex-1 pl-4">
               {localStorage.getItem("role") === "player1" ? (
-                <>
-                  <span className="text-blue-400">{data!.player1_name}</span> (
-                  {data.player1_score})
-                </>
+                <div className="inline-flex items-center justify-center gap-2">
+                  <span className="text-blue-400">{data!.player1_name}</span>
+                  <span
+                    className={
+                      (data.player1_score < 0
+                        ? "bg-red-400 "
+                        : "bg-blue-400 ") +
+                      "rounded-md px-2 py-1 text-white font-mono text-xs"
+                    }
+                  >
+                    {data.player1_score > 0
+                      ? "+" + data.player1_score
+                      : data.player1_score}
+                  </span>
+                </div>
               ) : (
-                <>
-                  <span className="text-blue-400">{data!.player2_name}</span> (
-                  {data.player2_score})
-                </>
+                <div className="inline-flex items-center justify-center gap-2">
+                  <span className="text-blue-400">{data!.player2_name}</span>
+                  <span
+                    className={
+                      (data.player2_score < 0
+                        ? "bg-red-400 "
+                        : "bg-blue-400 ") +
+                      "rounded-md px-2 py-1 text-white font-mono text-xs"
+                    }
+                  >
+                    {data.player2_score > 0
+                      ? "+" + data.player2_score
+                      : data.player2_score}
+                  </span>
+                </div>
               )}
             </div>
             <div className="flex flex-col items-center">
-              <div>Round: {data!.current_round}</div>
+              <div className="font-outfit">Round #{data!.current_round}</div>
               <GameTimer data={data} />
             </div>
             <div className="flex-1 pl-4">
-              {localStorage.getItem("role") === "player1" ? (
-                <>
-                  {data!.player2_name} ({data.player2_score})
-                </>
-              ) : (
-                <>
-                  {data!.player1_name} ({data.player1_score})
-                </>
-              )}
+              <div className="inline-flex items-center justify-center gap-2">
+                {localStorage.getItem("role") === "player1" ? (
+                  <>
+                    <span className="text-blue-400">{data!.player2_name}</span>
+                    <span
+                      className={
+                        (data.player2_score < 0
+                          ? "bg-red-400 "
+                          : "bg-blue-400 ") +
+                        "rounded-md px-2 py-1 text-white font-mono text-xs"
+                      }
+                    >
+                      {data.player2_score > 0
+                        ? "+" + data.player2_score
+                        : data.player2_score}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-blue-400">{data!.player1_name}</span>
+                    <span
+                      className={
+                        (data.player1_score < 0
+                          ? "bg-red-400 "
+                          : "bg-blue-400 ") +
+                        "rounded-md px-2 py-1 text-white font-mono text-xs"
+                      }
+                    >
+                      {data.player1_score > 0
+                        ? "+" + data.player1_score
+                        : data.player1_score}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Main Game Area */}
-        <div className="flex w-full h-full">
+        <div className="flex w-[95%] h-full">
           <div
-            className={`flex-1 text-center text-white font-bold text-5xl flex items-center justify-center transition duration-300 cursor-pointer ${
+            className={`rounded-s-md flex-1 text-center text-white font-bold text-5xl flex items-center justify-center transition duration-300 cursor-pointer ${
               selectedColor === "RED" ? "bg-red-700" : "bg-red-500"
             }`}
             onClick={() => handleChoice("RED")}
           >
             RED
           </div>
-          <div className="w-1 bg-black"></div>
+          <div className="w-1 bg-neutral-800"></div>
           <div
-            className={`flex-1 text-center text-white font-bold text-5xl flex items-center justify-center transition duration-300 cursor-pointer ${
+            className={`rounded-e-md flex-1 text-center text-white font-bold text-5xl flex items-center justify-center transition duration-300 cursor-pointer ${
               selectedColor === "BLUE" ? "bg-blue-700" : "bg-blue-500"
             }`}
             onClick={() => handleChoice("BLUE")}
@@ -269,7 +318,7 @@ const Game = () => {
         </div>
 
         {/* Footer */}
-        <div className="w-full p-4 bg-gray-700 text-center text-lg">
+        <div className="w-full p-4 bg-neutral-800 text-center text-lg font-thin">
           {selectedColor
             ? `You selected: ${selectedColor}! Waiting for the opponent...`
             : "Please choose a color"}
@@ -277,27 +326,22 @@ const Game = () => {
       </div>
 
       {/* Sidebar */}
-      <div className="bg-gray-700 w-screen h-[20%] md:h-screen md:w-[20%] p-2 flex flex-col gap-2">
-        <button
-          onClick={abandonGame}
-          className="bg-red-500 text-white p-2 rounded-md w-full"
-        >
-          Surrender
-        </button>
-
+      <div className="rounded-t-lg md:rounded-tr-none md:rounded-tl-lgmd md:rounded-s-lg bg-stone-900 w-screen h-[20%] md:h-screen md:w-[20%] p-2 flex flex-col gap-1 justify-between">
         {/* Table of rounds */}
-        <div className="bg-gray-800 text-white p-4 rounded-md w-full">
-          <h2 className="text-center text-xl font-bold mb-2">Rounds Summary</h2>
+        <div className="overflow-y-auto custom-scrollbar text-white pt-4 rounded-t-md w-full h-[60%] bg-zinc-800 shadow-md overflow-hidden">
+          <h2 className="text-center text-xl font-outfit font-bold mb-4">
+            Rounds Summary
+          </h2>
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-700">
-                <th className="border border-gray-600 p-2">#</th>
-                <th className="border border-gray-600 p-2">
+              <tr className="bg-zinc-700">
+                <th className="p-2">#</th>
+                <th className="p-2">
                   {localStorage.getItem("role") === "player1"
                     ? "You"
                     : "Opponent"}
                 </th>
-                <th className="border border-gray-600 p-2">
+                <th className="p-2">
                   {localStorage.getItem("role") === "player2"
                     ? "You"
                     : "Opponent"}
@@ -306,10 +350,13 @@ const Game = () => {
             </thead>
             <tbody>
               {data.rounds.map((round: any, index: number) => (
-                <tr key={index} className="text-center">
-                  <td className="border border-gray-600 p-2">{index + 1}</td>
-                  <td className="border border-gray-600 p-2">
-                    <div className="flex items-center justify-center gap-2">
+                <tr
+                  key={index}
+                  className="text-center odd:bg-[#222] even:bg-[#333]"
+                >
+                  <td className="p-2">{index + 1}</td>
+                  <td className="p-2">
+                    <div className="flex items-center justify-center gap-2 text-sm p-2 font-mono">
                       <div
                         className="w-6 h-6 rounded"
                         style={{
@@ -320,12 +367,13 @@ const Game = () => {
                               ? "blue"
                               : "gray",
                         }}
-                      ></div>
-                      <span>({round.player1_score})</span>
+                      >
+                        {round.player1_score}
+                      </div>
                     </div>
                   </td>
-                  <td className="border border-gray-600 p-2">
-                    <div className="flex items-center justify-center gap-2">
+                  <td className="p-2">
+                    <div className="flex items-center justify-center gap-2 text-sm p-2 font-mono">
                       <div
                         className="w-6 h-6 rounded"
                         style={{
@@ -336,8 +384,9 @@ const Game = () => {
                               ? "blue"
                               : "gray",
                         }}
-                      ></div>
-                      <span>({round.player2_score})</span>
+                      >
+                        {round.player2_score}
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -345,6 +394,19 @@ const Game = () => {
             </tbody>
           </table>
         </div>
+        <section className="flex flex-col gap-1 h-[40%]">
+          <div className="bg-zinc-800 flex flex-col h-full justify-center items-center text-gray-400 p-5">
+            <FaLock size="24" />
+            <b>Chat with your opponent</b>
+            <small>Locked until round 4.</small>
+          </div>
+          <button
+            onClick={abandonGame}
+            className="bg-red-500 text-white p-2 rounded-b-md w-full"
+          >
+            Surrender
+          </button>
+        </section>
       </div>
     </section>
   );
