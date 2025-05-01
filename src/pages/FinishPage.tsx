@@ -72,63 +72,59 @@ export default function FinishPage() {
   if (data == null) return ErrorPage("Failed to fetch data!");
 
   return (
-    <section className="flex flex-col items-center">
-      <div className="text-gray-400 text-xs">Identifier: {id}</div>
-      <div className="flex flex-col items-start mb-4">
-        <span>Game finished! Congrats!!!</span>
+    <section className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-red-400 via-purple-200 to-blue-400 text-gray-800 p-4">
+      <div className="text-gray-700 text-xs mb-4">Identifier: {id}</div>
+      <div className="flex flex-col items-center mb-8">
+        <h2 className="text-3xl font-bold mb-2">Game Finished!</h2>
+        <p className="text-lg font-medium mb-4">Congrats to the players!</p>
         <button
-          className="bg-red-500 p-2 rounded-md mt-2"
+          className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2 rounded shadow-md"
           onClick={() => navigate("/")}
         >
-          Go home, you're drunk
+          Go Home
         </button>
       </div>
 
-      <section className="flex flex-col items-center pb-4">
-        <h1 className="font-bold text-2xl">Scores</h1>
-
-        <div className="flex flex-row gap-8 items-center text-lg rounded-md bg-gray-100 p-2">
+      <section className="mb-10 text-center">
+        <h1 className="text-2xl font-bold mb-4">Scores</h1>
+        <div className="flex flex-row gap-12 items-center text-lg bg-black bg-opacity-10 backdrop-blur-md p-6 rounded-lg shadow-lg">
           <div className="flex flex-col items-center">
             {data.player1_name} ({data.player1_score})
             {data.player1_score > 0 && (
-              <span className="text-yellow-600 font-bold font-mono">
-                Winner
-              </span>
+              <span className="text-yellow-400 font-bold">Winner</span>
             )}
           </div>
           <b>vs</b>
           <div className="flex flex-col items-center">
             {data.player2_name} ({data.player2_score})
             {data.player2_score > 0 && (
-              <span className="text-yellow-600 font-bold font-mono">
-                Winner
-              </span>
+              <span className="text-yellow-400 font-bold">Winner</span>
             )}
           </div>
         </div>
       </section>
 
-      <h1 className="font-bold text-2xl">Rounds</h1>
+      <h1 className="text-2xl font-bold mb-4">Rounds</h1>
 
-      <table className="table-auto border-collapse border border-gray-500 w-[75%] text-white text-left">
-        <thead>
-          <tr className="bg-gray-700 text-white">
-            <th className="border border-gray-500 px-4 py-2">Round</th>
-            <th className="border border-gray-500 px-4 py-2">
-              {data.player1_name}'s Choice
-            </th>
-            <th className="border border-gray-500 px-4 py-2">
-              {data.player2_name}'s Choice
-            </th>
-          </tr>
-        </thead>
-        <tbody>
+<table className="table-auto border-collapse w-full max-w-4xl border border-gray-200 text-black text-left shadow-md bg-transparent">
+  <thead>
+    <tr className="bg-white bg-opacity-30">
+      <th className="border border-gray-500 px-4 py-2">Round</th>
+      <th className="border border-gray-500 px-4 py-2">
+        {data.player1_name}'s Choice
+      </th>
+      <th className="border border-gray-500 px-4 py-2">
+        {data.player2_name}'s Choice
+      </th>
+    </tr>
+  </thead>
+  <tbody>
           {data.rounds.map(
             // daca va intrebati de ce e verificarea aia cu != 0 e pentru ca suntem prea prosti sa putem sa o scoatem din backend, va rog sa nu o scoateti, va implor
             (round: any, index: number) =>
               round.player1_score != 0 &&
               round.player2_score != 0 && (
-                <tr key={index} className="odd:bg-gray-800 even:bg-gray-700">
+                <tr key={index} className="odd:bg-ggray odd:bg-opacity-10 even:bg-white even:bg-opacity-20">
                   <td className="border border-gray-500 px-4 py-2">
                     {round.round_number}
                   </td>
