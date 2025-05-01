@@ -209,73 +209,78 @@ const Game = () => {
     return <WaitingLobby id={id!} game_code={data.code} />;
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
-      {/* Header */}
-      <div className="w-full p-4 bg-gray-700 text-center text-xl font-bold">
-        <div className="flex justify-between">
-          <div className="flex-1 pl-4">
-            {localStorage.getItem("role") === "player1" ? (
-              <>
-                <span className="text-blue-400">{data!.player1_name}</span> (
-                {data.player1_score})
-              </>
-            ) : (
-              <>
-                <span className="text-blue-400">{data!.player2_name}</span> (
-                {data.player2_score})
-              </>
-            )}
+    <section className="flex flex-col md:flex-row gap-1 bg-black items-start">
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white w-[80%]">
+        {/* Header */}
+        <div className="w-full p-4 bg-gray-700 text-center text-xl font-bold">
+          <div className="flex justify-between">
+            <div className="flex-1 pl-4">
+              {localStorage.getItem("role") === "player1" ? (
+                <>
+                  <span className="text-blue-400">{data!.player1_name}</span> (
+                  {data.player1_score})
+                </>
+              ) : (
+                <>
+                  <span className="text-blue-400">{data!.player2_name}</span> (
+                  {data.player2_score})
+                </>
+              )}
+            </div>
+            <div className="flex flex-col items-center">
+              <div>Round: {data!.current_round}</div>
+              <GameTimer data={data} />
+            </div>
+            <div className="flex-1 pl-4">
+              {localStorage.getItem("role") === "player1" ? (
+                <>
+                  {data!.player2_name} ({data.player2_score})
+                </>
+              ) : (
+                <>
+                  {data!.player1_name} ({data.player1_score})
+                </>
+              )}
+            </div>
           </div>
-          <div className="flex flex-col items-center">
-            <div>Round: {data!.current_round}</div>
-            <GameTimer data={data} />
+        </div>
+
+        {/* Main Game Area */}
+        <div className="flex w-full h-full">
+          <div
+            className={`flex-1 text-center text-white font-bold text-5xl flex items-center justify-center transition duration-300 cursor-pointer ${
+              selectedColor === "RED" ? "bg-red-700" : "bg-red-500"
+            }`}
+            onClick={() => handleChoice("RED")}
+          >
+            RED
           </div>
-          <div className="flex-1 pl-4">
-            {localStorage.getItem("role") === "player1" ? (
-              <>
-                {data!.player2_name} ({data.player2_score})
-              </>
-            ) : (
-              <>
-                {data!.player1_name} ({data.player1_score})
-              </>
-            )}
+          <div className="w-1 bg-black"></div>
+          <div
+            className={`flex-1 text-center text-white font-bold text-5xl flex items-center justify-center transition duration-300 cursor-pointer ${
+              selectedColor === "BLUE" ? "bg-blue-700" : "bg-blue-500"
+            }`}
+            onClick={() => handleChoice("BLUE")}
+          >
+            BLUE
           </div>
+        </div>
+
+        {/* Footer */}
+        <div className="w-full p-4 bg-gray-700 text-center text-lg">
+          {selectedColor
+            ? `You selected: ${selectedColor}! Waiting for the opponent...`
+            : "Please choose a color"}
         </div>
       </div>
 
-      {/* Main Game Area */}
-      <div className="flex w-full h-full">
-        <div
-          className={`flex-1 text-center text-white font-bold text-5xl flex items-center justify-center transition duration-300 cursor-pointer ${
-            selectedColor === "RED" ? "bg-red-700" : "bg-red-500"
-          }`}
-          onClick={() => handleChoice("RED")}
-        >
-          RED
-        </div>
-        <div className="w-1 bg-black"></div>
-        <div
-          className={`flex-1 text-center text-white font-bold text-5xl flex items-center justify-center transition duration-300 cursor-pointer ${
-            selectedColor === "BLUE" ? "bg-blue-700" : "bg-blue-500"
-          }`}
-          onClick={() => handleChoice("BLUE")}
-        >
-          BLUE
-        </div>
+      {/* Sidebar */}
+      <div className="bg-gray-700 h-screen w-[20%] p-2">
+        <button onClick={abandonGame} className="bg-red-500 p-2 rounded-md">
+          Abandon Game!
+        </button>
       </div>
-
-      {/* Footer */}
-      <div className="w-full p-4 bg-gray-700 text-center text-lg">
-        {selectedColor
-          ? `You selected: ${selectedColor}! Waiting for the opponent...`
-          : "Please choose a color"}
-      </div>
-
-      <button onClick={abandonGame} className="bg-red-500 p-2 rounded-md">
-        Abandon Game!
-      </button>
-    </div>
+    </section>
   );
 };
 
