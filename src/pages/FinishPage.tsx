@@ -86,7 +86,7 @@ export default function FinishPage() {
   if (data == null) return ErrorPage("Failed to fetch data!");
 
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-400 via-purple-200 to-blue-400 text-gray-800 pt-32">
+    <section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-800 pt-32">
       <div className="flex flex-col items-center mb-8">
         <h2 className="text-3xl font-bold mb-2 font-mono leading-3">
           GAME OVER!
