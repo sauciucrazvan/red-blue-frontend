@@ -38,6 +38,7 @@ export default function Dashboard() {
       await localStorage.setItem("token", data.token);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
+      console.log(err);
       setError(err.message);
     }
   };
@@ -63,7 +64,8 @@ export default function Dashboard() {
       });
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+        const errorDetail = await response.json();
+        throw new Error(`Error: ${errorDetail.detail || response.statusText}`);
       }
 
       const data = await response.json();
@@ -71,6 +73,7 @@ export default function Dashboard() {
       await localStorage.setItem("token", data.token);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
+      console.log(err);
       setError(err.message);
     }
   };
@@ -94,6 +97,10 @@ export default function Dashboard() {
           onChange={(e) => setPlayerName(e.target.value)}
         />
 
+        {error && (
+          <div className="text-red-600 font-semibold pb-4">{error}</div>
+        )}
+
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full">
           <div className="w-full max-w-xs h-60 border border-white bg-white bg-opacity-10 backdrop-blur-md rounded p-6 shadow-md flex flex-col justify-center items-center text-center">
             <h2 className="text-xl font-bold mb-4">Create a Game</h2>
@@ -115,10 +122,6 @@ export default function Dashboard() {
             </button>
           </div>
         </div>
-
-        {error && (
-          <div className="mt-4 text-red-600 font-semibold">Error: {error}</div>
-        )}
 
         <button
           className="mt-6 underline text-white hover:text-gray-300"

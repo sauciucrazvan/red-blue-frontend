@@ -96,7 +96,7 @@ const Game = () => {
 
             if (!wsData.game_state && wsData.game_state === "finished") {
               console.log("Player abandoned, navigating to summary...");
-              navigate(`/result/${id}`);
+              navigate(`/summary/${id}?r=abandon`);
             }
 
             if (wsData.next_round) {
@@ -112,7 +112,7 @@ const Game = () => {
             }
 
             if (wsData.game_state === "finished") {
-              navigate(`/result/${id}`);
+              navigate(`/summary/${id}?r=finish`);
               return;
             }
           } catch (err) {
@@ -196,7 +196,7 @@ const Game = () => {
       console.error("Error abandoning the game:", error.message);
       setError(`Failed to submit choice: ${error.message}`);
     } finally {
-      navigate(`/result/${id}`);
+      navigate(`/summary/${id}?r=abandon`);
       return;
     }
   };
@@ -205,77 +205,148 @@ const Game = () => {
   if (error) return ErrorPage(error);
   if (data == null) return ErrorPage("Failed to fetch data!");
 
+  console.log(data.rounds);
+
   if (data.player1_name == null || data.player2_name == null)
     return <WaitingLobby id={id!} game_code={data.code} />;
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
-      {/* Header */}
-      <div className="w-full p-4 bg-gray-700 text-center text-xl font-bold">
-        <div className="flex justify-between">
-          <div className="flex-1 pl-4">
-            {localStorage.getItem("role") === "player1" ? (
-              <>
-                <span className="text-blue-400">{data!.player1_name}</span> (
-                {data.player1_score})
-              </>
-            ) : (
-              <>
-                <span className="text-blue-400">{data!.player2_name}</span> (
-                {data.player2_score})
-              </>
-            )}
+    <section className="flex flex-col md:flex-row gap-1 bg-black items-start h-screen w-screen">
+      <div className="flex flex-col items-center justify-center h-[80%] md:h-screen bg-gray-900 text-white w-screen md:w-[80%]">
+        {/* Header */}
+        <div className="w-full p-4 bg-gray-700 text-center text-xl font-bold">
+          <div className="flex justify-between">
+            <div className="flex-1 pl-4">
+              {localStorage.getItem("role") === "player1" ? (
+                <>
+                  <span className="text-blue-400">{data!.player1_name}</span> (
+                  {data.player1_score})
+                </>
+              ) : (
+                <>
+                  <span className="text-blue-400">{data!.player2_name}</span> (
+                  {data.player2_score})
+                </>
+              )}
+            </div>
+            <div className="flex flex-col items-center">
+              <div>Round: {data!.current_round}</div>
+              <GameTimer data={data} />
+            </div>
+            <div className="flex-1 pl-4">
+              {localStorage.getItem("role") === "player1" ? (
+                <>
+                  {data!.player2_name} ({data.player2_score})
+                </>
+              ) : (
+                <>
+                  {data!.player1_name} ({data.player1_score})
+                </>
+              )}
+            </div>
           </div>
-          <div className="flex flex-col items-center">
-            <div>Round: {data!.current_round}</div>
-            <GameTimer data={data} />
+        </div>
+
+        {/* Main Game Area */}
+        <div className="flex w-full h-full">
+          <div
+            className={`flex-1 text-center text-white font-bold text-5xl flex items-center justify-center transition duration-300 cursor-pointer ${
+              selectedColor === "RED" ? "bg-red-700" : "bg-red-500"
+            }`}
+            onClick={() => handleChoice("RED")}
+          >
+            RED
           </div>
-          <div className="flex-1 pl-4">
-            {localStorage.getItem("role") === "player1" ? (
-              <>
-                {data!.player2_name} ({data.player2_score})
-              </>
-            ) : (
-              <>
-                {data!.player1_name} ({data.player1_score})
-              </>
-            )}
+          <div className="w-1 bg-black"></div>
+          <div
+            className={`flex-1 text-center text-white font-bold text-5xl flex items-center justify-center transition duration-300 cursor-pointer ${
+              selectedColor === "BLUE" ? "bg-blue-700" : "bg-blue-500"
+            }`}
+            onClick={() => handleChoice("BLUE")}
+          >
+            BLUE
           </div>
+        </div>
+
+        {/* Footer */}
+        <div className="w-full p-4 bg-gray-700 text-center text-lg">
+          {selectedColor
+            ? `You selected: ${selectedColor}! Waiting for the opponent...`
+            : "Please choose a color"}
         </div>
       </div>
 
-      {/* Main Game Area */}
-      <div className="flex w-full h-full">
-        <div
-          className={`flex-1 text-center text-white font-bold text-5xl flex items-center justify-center transition duration-300 cursor-pointer ${
-            selectedColor === "RED" ? "bg-red-700" : "bg-red-500"
-          }`}
-          onClick={() => handleChoice("RED")}
+      {/* Sidebar */}
+      <div className="bg-gray-700 w-screen h-[20%] md:h-screen md:w-[20%] p-2 flex flex-col gap-2">
+        <button
+          onClick={abandonGame}
+          className="bg-red-500 text-white p-2 rounded-md w-full"
         >
-          RED
-        </div>
-        <div className="w-1 bg-black"></div>
-        <div
-          className={`flex-1 text-center text-white font-bold text-5xl flex items-center justify-center transition duration-300 cursor-pointer ${
-            selectedColor === "BLUE" ? "bg-blue-700" : "bg-blue-500"
-          }`}
-          onClick={() => handleChoice("BLUE")}
-        >
-          BLUE
+          Surrender
+        </button>
+
+        {/* Table of rounds */}
+        <div className="bg-gray-800 text-white p-4 rounded-md w-full">
+          <h2 className="text-center text-xl font-bold mb-2">Rounds Summary</h2>
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-700">
+                <th className="border border-gray-600 p-2">#</th>
+                <th className="border border-gray-600 p-2">
+                  {localStorage.getItem("role") === "player1"
+                    ? "You"
+                    : "Opponent"}
+                </th>
+                <th className="border border-gray-600 p-2">
+                  {localStorage.getItem("role") === "player2"
+                    ? "You"
+                    : "Opponent"}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.rounds.map((round: any, index: number) => (
+                <tr key={index} className="text-center">
+                  <td className="border border-gray-600 p-2">{index + 1}</td>
+                  <td className="border border-gray-600 p-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded"
+                        style={{
+                          backgroundColor:
+                            round.player1_choice === "RED"
+                              ? "red"
+                              : round.player1_choice === "BLUE"
+                              ? "blue"
+                              : "gray",
+                        }}
+                      ></div>
+                      <span>({round.player1_score})</span>
+                    </div>
+                  </td>
+                  <td className="border border-gray-600 p-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded"
+                        style={{
+                          backgroundColor:
+                            round.player2_choice === "RED"
+                              ? "red"
+                              : round.player2_choice === "BLUE"
+                              ? "blue"
+                              : "gray",
+                        }}
+                      ></div>
+                      <span>({round.player2_score})</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
-
-      {/* Footer */}
-      <div className="w-full p-4 bg-gray-700 text-center text-lg">
-        {selectedColor
-          ? `You selected: ${selectedColor}! Waiting for the opponent...`
-          : "Please choose a color"}
-      </div>
-
-      <button onClick={abandonGame} className="bg-red-500 p-2 rounded-md">
-        Abandon Game!
-      </button>
-    </div>
+    </section>
   );
 };
 
