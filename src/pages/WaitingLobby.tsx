@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
 import { WS_URL } from "../config";
 
 interface WaitingLobbyProps {
@@ -30,7 +31,6 @@ export default function WaitingLobby(props: WaitingLobbyProps) {
         ws.onmessage = (event) => {
           try {
             const wsData = JSON.parse(event.data);
-
             if (wsData.state === "active") {
               console.log("Player connected, refreshing...");
               window.location.reload();
@@ -58,29 +58,37 @@ export default function WaitingLobby(props: WaitingLobbyProps) {
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(props.game_code);
-      console.log("Game code copied to clipboard");
+      toast.success("Copied to clipboard", {
+        style: {
+          backgroundColor: '#333',
+          color: 'white',
+        },
+      });
     } catch (err) {
       console.error("Failed to copy:", err);
+      toast.error("❌ Failed to copy. Please check your browser settings or permissions.");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-800">
-      <div className="bg-black bg-opacity-10 backdrop-blur-md border border-white border-opacity-30 rounded-2xl shadow-xl p-10 max-w-md w-full text-center space-y-6">
-        <h2 className="text-2xl font-bold">Waiting for the opponent...</h2>
-        <p className="text-lg">Share this code with your opponent: </p>
-        <div
-          onClick={copyToClipboard}
-          className="cursor-pointer underline underline-offset-2 text-lg text-gray-800 hover:text-gray-300 transition"
-          title="Click to copy"
-        >
-          {props.game_code}
+    <>
+      <Toaster position="top-center" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-800">
+        <div className="bg-black bg-opacity-10 backdrop-blur-md border border-white border-opacity-30 rounded-2xl shadow-xl p-10 max-w-md w-full text-center space-y-6">
+          <h2 className="text-2xl font-bold">Waiting for the opponent...</h2>
+          <p className="text-lg">Share this code with your opponent:</p>
+          <div
+            onClick={copyToClipboard}
+            className="cursor-pointer underline underline-offset-2 text-lg text-gray-800 hover:text-gray-300 transition"
+            title="Click to copy"
+          >
+            {props.game_code}
+          </div>
+          <p className="text-sm text-gray-700 italic">
+            The game will start once your opponent joins.
+          </p>
         </div>
-
-        <p className="text-sm text-gray-700 italic">
-          The game will start once your opponent joins.
-        </p>
       </div>
-    </div>
+    </>
   );
 }
