@@ -5,7 +5,8 @@ import { API_URL } from "../config";
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  const [error, setError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState("");
   const [joinGameCode, setJoinGameCode] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -13,12 +14,12 @@ export default function Dashboard() {
 
   const createGame = async () => {
     if (playerName.length < 3 || playerName.length > 16) {
-      setError("Player name must be between 3 and 16 characters.");
+      setCreateError("Player name must be between 3 and 16 characters.");
       return;
     }
 
     try {
-      setError(null);
+      setCreateError(null);
       const response = await fetch(API_URL + "api/v1/game/create", {
         method: "POST",
         headers: {
@@ -39,22 +40,22 @@ export default function Dashboard() {
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
       console.log(err);
-      setError(err.message);
+      setCreateError(err.message);
     }
   };
 
   const joinGame = async () => {
     if (playerName.length < 3 || playerName.length > 16) {
-      setError("Player name must be between 3 and 16 characters.");
+      setJoinError("Player name must be between 3 and 16 characters.");
       return;
     }
     if (!joinGameCode) {
-      setError("Game code is required to join a game.");
+      setJoinError("Game code is required to join a game.");
       return;
     }
 
     try {
-      setError(null);
+      setJoinError(null);
       const response = await fetch(API_URL + "api/v1/game/join", {
         method: "POST",
         headers: {
@@ -74,12 +75,12 @@ export default function Dashboard() {
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
       console.log(err);
-      setError(err.message);
+      setJoinError(err.message);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-100 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-800 p-6">
       <div className="w-full max-w-2xl flex flex-col items-center">
         <h1 className="relative text-6xl font-extrabold text-center mt-6 mb-4">
           <span className="relative z-10 text-neutral-200">Red</span>
@@ -98,8 +99,8 @@ export default function Dashboard() {
             onChange={(e) => setPlayerName(e.target.value)}
           />
 
-          {error && (
-            <div className="text-red-600 font-semibold pb-4">{error}</div>
+          {createError && (
+            <div className="text-red-600 font-semibold pb-4">{createError}</div>
           )}
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full">
@@ -117,7 +118,10 @@ export default function Dashboard() {
               <h2 className="text-xl font-bold mb-2">Join a Game</h2>
               <button
                 className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-                onClick={() => setShowJoinModal(true)}
+                onClick={() => {
+                  setShowJoinModal(true);
+                  setJoinError(null);
+                }}
               >
                 Enter Game Code
               </button>
@@ -138,15 +142,25 @@ export default function Dashboard() {
               <h2 className="text-xl font-bold mb-4">Enter Game Code</h2>
               <input
                 type="text"
-                className="w-full border border-gray-400 rounded p-2 text-center mb-4"
+                className="w-full border border-gray-400 rounded text-gray-800 p-2 text-center mb-4"
                 placeholder="Game code"
                 value={joinGameCode}
                 onChange={(e) => setJoinGameCode(e.target.value)}
               />
+
+              {joinError && (
+                <div className="text-red-400 font-semibold mb-4 text-sm text-center">
+                  {joinError}
+                </div>
+              )}
+
               <div className="flex justify-between">
                 <button
-                  className="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded"
-                  onClick={() => setShowJoinModal(false)}
+                  className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
+                  onClick={() => {
+                    setShowJoinModal(false);
+                    setJoinError(null);
+                  }}
                 >
                   Cancel
                 </button>
