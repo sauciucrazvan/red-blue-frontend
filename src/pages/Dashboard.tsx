@@ -8,6 +8,8 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState("");
   const [joinGameCode, setJoinGameCode] = useState("");
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   const createGame = async () => {
     if (playerName.length < 3 || playerName.length > 16) {
@@ -74,11 +76,13 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-red-400 via-purple-200 to-blue-400 text-gray-800 p-4">
-      <h1 className="text-6xl font-extrabold text-center mt-6 mb-4">
-        <span className="text-red-600">RED</span>
-        <span className="text-purple-700">_</span>
-        <span className="text-blue-600">BLUE</span>
+    <div className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-00 p-6">
+      <h1 className="relative text-6xl font-extrabold text-center mt-6 mb-4">
+        <span className="relative z-10 text-neutral-200">Red</span>
+        <span className="absolute left-1/4 -translate-x-1/2 top-1/2 -translate-y-1/2 w-28 h-28 bg-red-600 rounded-full z-0 opacity-90"></span>
+
+        <span className="relative z-10 text-neutral-200">Blue</span>
+        <span className="absolute left-3/4 -translate-x-1/2 top-1/2 -translate-y-1/2 w-28 h-28 bg-blue-600 rounded-full z-0 opacity-90"></span>
       </h1>
 
       <div className="w-full max-w-md mt-6 flex flex-col items-center">
@@ -94,27 +98,20 @@ export default function Dashboard() {
           <div className="w-full max-w-xs h-60 border border-white bg-white bg-opacity-10 backdrop-blur-md rounded p-6 shadow-md flex flex-col justify-center items-center text-center">
             <h2 className="text-xl font-bold mb-4">Create a Game</h2>
             <button
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded"
+              className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
               onClick={createGame}
             >
-              Create Game
+              Start New Game
             </button>
           </div>
 
           <div className="w-full max-w-xs h-60 border border-white bg-white bg-opacity-10 backdrop-blur-md rounded p-6 shadow-md flex flex-col justify-center items-center text-center">
             <h2 className="text-xl font-bold mb-2">Join a Game</h2>
-            <input
-              type="text"
-              className="w-full border border-gray-400 rounded p-2 text-center mb-2"
-              placeholder="Game code"
-              value={joinGameCode}
-              onChange={(e) => setJoinGameCode(e.target.value)}
-            />
             <button
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded"
-              onClick={joinGame}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+              onClick={() => setShowJoinModal(true)}
             >
-              Join Game
+              Enter Game Code
             </button>
           </div>
         </div>
@@ -123,66 +120,106 @@ export default function Dashboard() {
           <div className="mt-4 text-red-600 font-semibold">Error: {error}</div>
         )}
 
-        <div className="mt-10 w-full max-w-2xl border border-white bg-white bg-opacity-10 backdrop-blur-md p-6 rounded shadow-lg">
-          <h2 className="text-2xl font-bold mb-4 text-center">How to Play</h2>
-          <p className="mb-2">
-            Once a game starts, the two users will play a total of{" "}
-            <strong>10 rounds</strong>. In each round, they choose between two
-            colors: <span className="text-red-600 font-bold">RED</span> or{" "}
-            <span className="text-blue-600 font-bold">BLUE</span>.
-          </p>
-          <table className="w-full text-center mb-4 border border-gray-400">
-            <thead>
-              <tr className="bg-gray-300">
-                <th>Player 1</th>
-                <th>Player 2</th>
-                <th>Player 1 Score</th>
-                <th>Player 2 Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>RED</td>
-                <td>RED</td>
-                <td>+3</td>
-                <td>+3</td>
-              </tr>
-              <tr className="bg-gray-100">
-                <td>RED</td>
-                <td>BLUE</td>
-                <td>-6</td>
-                <td>+6</td>
-              </tr>
-              <tr>
-                <td>BLUE</td>
-                <td>RED</td>
-                <td>+6</td>
-                <td>-6</td>
-              </tr>
-              <tr className="bg-gray-100">
-                <td>BLUE</td>
-                <td>BLUE</td>
-                <td>-3</td>
-                <td>-3</td>
-              </tr>
-            </tbody>
-          </table>
-          <p className="mb-2">
-            During the game, players can see their score for each past round
-            (e.g. +3, -6, etc.) as well as their total score.
-          </p>
-          <p className="mb-2">
-            <strong>Rounds 9 and 10</strong> have <strong>doubled score</strong>{" "}
-            values.
-          </p>
-          <p>
-            <strong>WINNING CONDITION:</strong> A player with a positive score
-            at the end is considered a{" "}
-            <span className="text-green-600 font-bold">winner</span>. A player
-            with a negative or null score has{" "}
-            <span className="text-red-600 font-bold">lost</span>.
-          </p>
-        </div>
+        <button
+          className="mt-6 underline text-white hover:text-gray-300"
+          onClick={() => setShowHowToPlay(true)}
+        >
+          Don't know how to play?
+        </button>
+
+        {showJoinModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-00 p-6">
+              <h2 className="text-xl font-bold mb-4">Enter Game Code</h2>
+              <input
+                type="text"
+                className="w-full border border-gray-400 rounded p-2 text-center mb-4"
+                placeholder="Game code"
+                value={joinGameCode}
+                onChange={(e) => setJoinGameCode(e.target.value)}
+              />
+              <div className="flex justify-between">
+                <button
+                  className="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded"
+                  onClick={() => setShowJoinModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+                  onClick={joinGame}
+                >
+                  Join Game
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showHowToPlay && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+            <div className="bg-white text-black p-6 rounded shadow-lg w-full max-w-2xl overflow-y-auto max-h-[90vh]">
+              <h2 className="text-2xl font-bold mb-4 text-center">How to Play</h2>
+              <p className="mb-2">
+                Once a game starts, the two users will play a total of <strong>10 rounds</strong>. In each round, they choose between two
+                colors: <span className="text-red-600 font-bold">RED</span> or <span className="text-blue-600 font-bold">BLUE</span>.
+              </p>
+              <table className="w-full text-center mb-4 border border-gray-400">
+                <thead>
+                  <tr className="bg-gray-300">
+                    <th>Player 1</th>
+                    <th>Player 2</th>
+                    <th>Player 1 Score</th>
+                    <th>Player 2 Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>RED</td>
+                    <td>RED</td>
+                    <td>+3</td>
+                    <td>+3</td>
+                  </tr>
+                  <tr className="bg-gray-100">
+                    <td>RED</td>
+                    <td>BLUE</td>
+                    <td>-6</td>
+                    <td>+6</td>
+                  </tr>
+                  <tr>
+                    <td>BLUE</td>
+                    <td>RED</td>
+                    <td>+6</td>
+                    <td>-6</td>
+                  </tr>
+                  <tr className="bg-gray-100">
+                    <td>BLUE</td>
+                    <td>BLUE</td>
+                    <td>-3</td>
+                    <td>-3</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p className="mb-2">
+                During the game, players can see their score for each past round (e.g. +3, -6, etc.) as well as their total score.
+              </p>
+              <p className="mb-2">
+                <strong>Rounds 9 and 10</strong> have <strong>doubled score</strong> values.
+              </p>
+              <p>
+                <strong>WINNING CONDITION:</strong> A player with a positive score at the end is considered a <span className="text-green-600 font-bold">winner</span>. A player with a negative or null score has <span className="text-red-600 font-bold">lost</span>.
+              </p>
+              <div className="mt-6 text-center">
+                <button
+                  className="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded"
+                  onClick={() => setShowHowToPlay(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
