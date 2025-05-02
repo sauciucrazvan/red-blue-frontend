@@ -1,6 +1,6 @@
 export default function LoadingPage() {
   return (
-  <div className = "min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-400 via-purple-200 to-blue-400 text-gray-800">
+  <div className = "min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-800">
     <div className = "flex items-center gap-4">
       <svg
         className = "animate-spin h-10 w-10 text-purple-700"
