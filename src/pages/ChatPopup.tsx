@@ -1,49 +1,61 @@
-import { useState } from "react";
-import { MessageSquare } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
-const ChatPopup = ({ currentRound }: { currentRound: number }) => {
-  const [open, setOpen] = useState(false);
-  const isAvailable = currentRound === 4 || currentRound === 8;
+interface ChatPopupProps {
+  currentRound: number;
+  onClose: () => void;
+}
 
-  const togglePopup = () => {
-    if (isAvailable) {
-      setOpen(!open);
+const ChatPopup = ({ currentRound, onClose }: ChatPopupProps) => {
+  const [chatMessages, setChatMessages] = useState<string[]>([]);
+  const [message, setMessage] = useState("");
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Scroll to bottom when messages change
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
+
+  const sendMessage = () => {
+    if (message.trim()) {
+      setChatMessages((prevMessages) => [...prevMessages, message]);
+      setMessage("");
     }
   };
 
   return (
-    <div className="relative z-50">
-      <div className="group relative">
-        <button
-          className={`p-3 rounded-full shadow-lg ${
-            isAvailable ? "bg-white/20 hover:bg-white/30" : "bg-white/10 cursor-not-allowed"
-          }`}
-          onClick={togglePopup}
-        >
-          <MessageSquare className="text-white" />
-        </button>
-
-        {!isAvailable && (
-          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-3 py-1 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-            Available only on round 4 and 8
-          </div>
-        )}
+    <div className="bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded shadow-lg w-full max-w-md">
+      <div className="text-xl font-bold mb-2 text-center">
+        Chat - Round {currentRound}
       </div>
 
-      {open && isAvailable && (
-        <div className="absolute bottom-12 right-0 w-[40rem] bg-black/90 backdrop-blur-lg rounded-xl shadow-lg p-4 text-white">
-          <div className="font-bold mb-2">Chat</div>
-          <div className="h-40 overflow-y-auto text-sm mb-2">
-            <p className="text-gray-300">💬 Chat feature coming soon!</p>
+      <div className="h-48 overflow-y-auto bg-white/10 p-3 rounded-lg mb-4">
+        {chatMessages.map((msg, index) => (
+          <div key={index} className="mb-2">
+            • {msg}
           </div>
-          <input
-            type="text"
-            disabled
-            placeholder="Type your message..."
-            className="w-full p-2 rounded bg-white/10 text-white outline-none text-sm"
-          />
-        </div>
-      )}
+        ))}
+        <div ref={chatEndRef} />
+      </div>
+
+      <input
+        type="text"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Type a message..."
+        className="w-full p-2 rounded bg-white/10 text-white placeholder-gray-300 mb-2 outline-none"
+      />
+      <button
+        onClick={sendMessage}
+        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded mb-2 transition"
+      >
+        Send
+      </button>
+      <button
+        onClick={onClose}
+        className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition"
+      >
+        Close Chat
+      </button>
     </div>
   );
 };
