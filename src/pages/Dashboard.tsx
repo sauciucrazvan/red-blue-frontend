@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { API_URL } from "../config";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [joinError, setJoinError] = useState<string | null>(null);
+  
   const [playerName, setPlayerName] = useState("");
   const [joinGameCode, setJoinGameCode] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -14,12 +13,16 @@ export default function Dashboard() {
 
   const createGame = async () => {
     if (playerName.length < 3 || playerName.length > 16) {
-      setCreateError("Player name must be between 3 and 16 characters.");
+      toast.error("Player name must be between 3 and 16 characters.", {
+        style: {
+          backgroundColor: '#333',
+          color: 'white',
+        },
+      });
       return;
     }
 
     try {
-      setCreateError(null);
       const response = await fetch(API_URL + "api/v1/game/create", {
         method: "POST",
         headers: {
@@ -35,27 +38,40 @@ export default function Dashboard() {
       }
 
       const data = await response.json();
-      await localStorage.setItem("role", data.role);
-      await localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("token", data.token);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
-      console.log(err);
-      setCreateError(err.message);
+      toast.error(err.message, {
+        style: {
+          backgroundColor: '#333',
+          color: 'white',
+        },
+      });
     }
   };
 
   const joinGame = async () => {
     if (playerName.length < 3 || playerName.length > 16) {
-      setJoinError("Player name must be between 3 and 16 characters.");
+      toast.error("Player name must be between 3 and 16 characters.", {
+        style: {
+          backgroundColor: '#333',
+          color: 'white',
+        },
+      });
       return;
     }
     if (!joinGameCode) {
-      setJoinError("Game code is required to join a game.");
+      toast.error("Game code is required.", {
+        style: {
+          backgroundColor: '#333',
+          color: 'white',
+        },
+      });
       return;
     }
 
     try {
-      setJoinError(null);
       const response = await fetch(API_URL + "api/v1/game/join", {
         method: "POST",
         headers: {
@@ -70,12 +86,16 @@ export default function Dashboard() {
       }
 
       const data = await response.json();
-      await localStorage.setItem("role", data.role);
-      await localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("token", data.token);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
-      console.log(err);
-      setJoinError(err.message);
+      toast.error(err.message, {
+        style: {
+          backgroundColor: '#333',
+          color: 'white',
+        },
+      });
     }
   };
 
@@ -99,10 +119,6 @@ export default function Dashboard() {
             onChange={(e) => setPlayerName(e.target.value)}
           />
 
-          {createError && (
-            <div className="text-red-600 font-semibold pb-4">{createError}</div>
-          )}
-
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full">
             <div className="w-full max-w-xs h-30 border border-white bg-white bg-opacity-10 backdrop-blur-md rounded p-6 shadow-md flex flex-col justify-center items-center text-center">
               <h2 className="text-xl font-bold mb-2">Create a Game</h2>
@@ -118,10 +134,7 @@ export default function Dashboard() {
               <h2 className="text-xl font-bold mb-2">Join a Game</h2>
               <button
                 className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-                onClick={() => {
-                  setShowJoinModal(true);
-                  setJoinError(null);
-                }}
+                onClick={() => setShowJoinModal(true)}
               >
                 Enter Game Code
               </button>
@@ -148,19 +161,10 @@ export default function Dashboard() {
                 onChange={(e) => setJoinGameCode(e.target.value)}
               />
 
-              {joinError && (
-                <div className="text-red-400 font-semibold mb-4 text-sm text-center">
-                  {joinError}
-                </div>
-              )}
-
               <div className="flex justify-between">
                 <button
                   className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
-                  onClick={() => {
-                    setShowJoinModal(false);
-                    setJoinError(null);
-                  }}
+                  onClick={() => setShowJoinModal(false)}
                 >
                   Cancel
                 </button>

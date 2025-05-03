@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { WS_URL } from "../config";
 
 interface WaitingLobbyProps {
@@ -59,10 +59,6 @@ export default function WaitingLobby(props: WaitingLobbyProps) {
     try {
       await navigator.clipboard.writeText(props.game_code);
       toast.success("Copied to clipboard", {
-        style: {
-          backgroundColor: '#333',
-          color: 'white',
-        },
       });
     } catch (err) {
       console.error("Failed to copy:", err);
@@ -72,7 +68,6 @@ export default function WaitingLobby(props: WaitingLobbyProps) {
 
   return (
     <>
-      <Toaster position="top-center" />
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-800">
         <div className="bg-black bg-opacity-10 backdrop-blur-md border border-white border-opacity-30 rounded-2xl shadow-xl p-10 max-w-md w-full text-center space-y-6">
           <h2 className="text-2xl font-bold">Waiting for the opponent...</h2>
