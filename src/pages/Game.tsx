@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
 import ErrorPage from "./ErrorPage";
 import LoadingPage from "./Loading";
 import WaitingLobby from "./WaitingLobby";
 import ChatPopup from "./ChatPopup";
 import { API_URL, WS_URL } from "../config";
 import GameTimer from "./components/GameTimer";
-
+import GameSummary from "./GameSummary";
 
 const Game = () => {
   let { id } = useParams();
@@ -17,9 +18,15 @@ const Game = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const [playerName, setPlayerName] = useState<string | null>(null);
+  const [chatVisible, setChatVisible] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const [showSurrenderPopup, setShowSurrenderPopup] = useState(false);
 
   const handleChoice = (color: string) => {
-    if (selectedColor) return;
+    if (selectedColor) {
+      toast("Wait for your opponent");
+      return;
+    }
 
     setSelectedColor(color);
     chooseColor(color);
@@ -64,11 +71,9 @@ const Game = () => {
         }
 
         const data = await response.json();
-
         setData(data);
-
         setPlayerName(
-          localStorage.getItem("role") == "player1"
+          localStorage.getItem("role") === "player1"
             ? data.player1_name
             : data.player2_name
         );
@@ -97,7 +102,6 @@ const Game = () => {
             const wsData = JSON.parse(event.data);
 
             if (!wsData.game_state && wsData.game_state === "finished") {
-              console.log("Player abandoned, navigating to summary...");
               navigate(`/summary/${id}?r=abandon`);
             }
 
@@ -109,13 +113,11 @@ const Game = () => {
                 player2_score: wsData.player2_score,
                 rounds: wsData.rounds,
               }));
-
               setSelectedColor(null);
             }
 
             if (wsData.game_state === "finished") {
               navigate(`/summary/${id}?r=finish`);
-              return;
             }
           } catch (err) {
             console.error("Failed to parse WebSocket message:", err);
@@ -137,7 +139,6 @@ const Game = () => {
     };
 
     initializeWebSocket();
-    return;
   }, [id]);
 
   const chooseColor = async (choice: string) => {
@@ -174,7 +175,7 @@ const Game = () => {
 
   const abandonGame = async () => {
     try {
-      const response = await fetch(`${API_URL}api/v1/game/${id}/abandon`, {
+      await fetch(`${API_URL}api/v1/game/${id}/abandon`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -185,138 +186,140 @@ const Game = () => {
           token: localStorage.getItem("token"),
         }),
       });
-
-      if (!response.ok) {
-        const errorDetail = await response.json();
-        throw new Error(`Error: ${errorDetail.detail || response.statusText}`);
-      }
-
-      const response_data = await response.json();
-      console.log(response_data.message);
     } catch (error: any) {
       console.error("Error abandoning the game:", error.message);
       setError(`Failed to submit choice: ${error.message}`);
     } finally {
       navigate(`/summary/${id}?r=abandon`);
-      return;
     }
   };
 
   if (loading) return LoadingPage();
   if (error) return ErrorPage(error);
   if (data == null) return ErrorPage("Failed to fetch data!");
-
   if (data.player1_name == null || data.player2_name == null)
     return <WaitingLobby id={id!} game_code={data.code} />;
 
   return (
-    <section className="grid grid-cols-1 md:grid-cols-5 h-screen w-screen bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-100">
-      {/* Sidebar */}
-      <aside className="col-span-1 bg-black/80 backdrop-blur-md p-4 flex flex-col gap-6 shadow-lg border-r border-white/10">
-        <div className="text-center text-2xl font-bold">Dashboard</div>
+    <section className="flex flex-col items-center justify-center h-screen w-screen bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-white overflow-y-auto px-4 py-4">
+  {/* Transparent box */}
+  <div className="w-full max-w-3xl bg-white bg-opacity-10 backdrop-blur-md rounded-xl shadow-xl p-6 flex flex-col items-center space-y-6">
+    
+    {/* Top bar with buttons */}
+    <div className="w-full flex justify-between items-center space-x-4">
+      <button
+        onClick={() => setShowSummary(true)}
+        className="bg-gradient-to-r from-red-700 via-purple-300 to-blue-700 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all w-1/3"
+      >
+        View Game Summary
+      </button>
+      <button
+        onClick={() => setChatVisible(true)}
+        className="bg-gradient-to-r from-red-700 via-purple-300 to-blue-700 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all w-1/3"
+      >
+        Open Chat
+      </button>
+      <button
+        onClick={() => setShowSurrenderPopup(true)}
+        className="bg-gradient-to-r from-red-700 via-purple-300 to-blue-700 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all w-1/3"
+      >
+        Surrender
+      </button>
+    </div>
 
-        <button
-          onClick={abandonGame}
-          className="bg-gradient-to-r from-red-600 to-red-400 hover:from-red-700 hover:to-red-500 text-white py-2 rounded-lg font-semibold shadow-md"
-        >
-          Surrender
-        </button>
-
-        {/* Rounds Summary */}
-        <div className="bg-white/10 p-4 rounded-lg">
-          <h2 className="text-center text-lg font-bold mb-2">Rounds Summary</h2>
-          <table className="w-full text-sm text-white">
-            <thead>
-              <tr className="bg-white/10">
-                <th className="py-1">#</th>
-                <th className="py-1">{localStorage.getItem("role") === "player1" ? "You" : "Opponent"}</th>
-                <th className="py-1">{localStorage.getItem("role") === "player2" ? "You" : "Opponent"}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.rounds.map((round: any, index: number) => (
-                <tr key={index} className="text-center hover:bg-white/5">
-                  <td className="py-1">{index + 1}</td>
-                  <td className="py-1">
-                    <div className="flex justify-center items-center gap-2">
-                      <div className="w-4 h-4 rounded" style={{ backgroundColor: round.player1_choice === "RED" ? "red" : round.player1_choice === "BLUE" ? "blue" : "gray" }} />
-                      <span className="text-xs">({round.player1_score})</span>
-                    </div>
-                  </td>
-                  <td className="py-1">
-                    <div className="flex justify-center items-center gap-2">
-                      <div className="w-4 h-4 rounded" style={{ backgroundColor: round.player2_choice === "RED" ? "red" : round.player2_choice === "BLUE" ? "blue" : "gray" }} />
-                      <span className="text-xs">({round.player2_score})</span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </aside>
-
-      {/* Main Game Area */}
-      <main className="col-span-4 flex flex-col items-center justify-start p-6 gap-6 overflow-y-auto">
-        {/* Header */}
-        <div className="w-full bg-white/10 p-4 rounded-lg shadow flex justify-between items-center text-center font-semibold text-lg">
-          <div className="w-1/3 text-left">
-            {localStorage.getItem("role") === "player1"
-              ? `${data.player1_name} (${data.player1_score})`
-              : `${data.player2_name} (${data.player2_score})`}
-          </div>
-          <div className="w-1/3">
-            Round {data.current_round}
-            <GameTimer data={data} />
-          </div>
-          <div className="w-1/3 text-right">
-            {localStorage.getItem("role") === "player1"
-              ? `${data.player2_name} (${data.player2_score})`
-              : `${data.player1_name} (${data.player1_score})`}
-          </div>
-        </div>
-
-        {/* Choices */}
-        <div className="grid grid-cols-2 w-full gap-4">
-          <div
-            className={`text-center font-bold text-4xl py-20 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${
-              selectedColor === "RED" ? "bg-red-700" : "bg-red-500"
-            }`}
-            onClick={() => handleChoice("RED")}
-          >
-            RED
-          </div>
-          <div
-            className={`text-center font-bold text-4xl py-20 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${
-              selectedColor === "BLUE" ? "bg-blue-700" : "bg-blue-500"
-            }`}
-            onClick={() => handleChoice("BLUE")}
-          >
-            BLUE
-          </div>
-        </div>
-
-        {/* Selection Info */}
-        <div className="w-full text-center bg-white/10 py-3 rounded-lg font-medium">
-          {selectedColor
-            ? `You selected: ${selectedColor}. Waiting for the opponent...`
-            : "Please choose a color"}
-        </div>
-      </main>
-
-      <div className="fixed bottom-36 left-1/3 -translate-x-1/2">
-      <h1 className="relative text-6xl font-extrabold text-center mt-6 mb-4">
-          <span className="relative z-10 text-neutral-200">Red</span>
-          <span className="absolute left-1/4 -translate-x-1/2 top-1/2 -translate-y-1/2 w-28 h-28 bg-red-600 rounded-full z-0 opacity-90"></span>
-
-          <span className="relative z-10 text-neutral-200">Blue</span>
-          <span className="absolute left-3/4 -translate-x-1/2 top-1/2 -translate-y-1/2 w-28 h-28 bg-blue-600 rounded-full z-0 opacity-90"></span>
-        </h1>
+    {/* Header Info */}
+    <div className="text-center font-semibold text-lg w-full flex justify-around items-center bg-black/10 p-4 rounded-lg">
+      <div>
+        {localStorage.getItem("role") === "player1"
+          ? `${data.player1_name} (${data.player1_score})`
+          : `${data.player2_name} (${data.player2_score})`}
       </div>
+      <div>
+        Round {data.current_round}
+        <GameTimer data={data} />
+      </div>
+      <div>
+        {localStorage.getItem("role") === "player1"
+          ? `${data.player2_name} (${data.player2_score})`
+          : `${data.player1_name} (${data.player1_score})`}
+      </div>
+    </div>
+
+    {/* Choices */}
+    <div className="grid grid-cols-2 gap-6 w-full">
+      <div
+        className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${selectedColor === "RED" ? "bg-red-700" : "bg-red-500"
+          }`}
+        onClick={() => handleChoice("RED")}
+      >
+        RED
+      </div>
+      <div
+        className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${selectedColor === "BLUE" ? "bg-blue-700" : "bg-blue-500"
+          }`}
+        onClick={() => handleChoice("BLUE")}
+      >
+        BLUE
+      </div>
+    </div>
+
+    {/* Status Text */}
+    <div className="text-white font-semibold text-lg">
+      {selectedColor
+        ? "Waiting for your opponent..."
+        : "Choose a color!"}
+    </div>
+  </div>
+
+      {/* Surrender Confirmation Popup */}
+      {showSurrenderPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="relative bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded shadow-lg w-full max-w-md">
+            <h3 className="text-xl font-bold text-center mb-4">
+              Are you sure you want to surrender?
+            </h3>
+            <div className="flex justify-around gap-6">
+              <button
+                onClick={() => {
+                  abandonGame();
+                  setShowSurrenderPopup(false);
+                }}
+                className="bg-gradient-to-r from-red-700 via-red-500 to-red-400 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all"
+              >
+                Yes, Surrender
+              </button>
+              <button
+                onClick={() => setShowSurrenderPopup(false)}
+                className="bg-gradient-to-r from-blue-700 via-blue-500 to-blue-400 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all"
+              >
+                No, Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Chat Popup */}
-      <div className="fixed bottom-4 right-4">
-        <ChatPopup currentRound={data.current_round} />
-      </div>
+      {chatVisible && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="relative bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded shadow-lg w-full max-w-md">
+            <ChatPopup
+              currentRound={data.current_round}
+              onClose={() => setChatVisible(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Summary Modal */}
+      {showSummary && (
+        <GameSummary
+          player1Name={data.player1_name}
+          player2Name={data.player2_name}
+          rounds={data.rounds}
+          onClose={() => setShowSummary(false)}
+        />
+      )}
     </section>
   );
 };
