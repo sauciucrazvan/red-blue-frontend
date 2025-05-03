@@ -6,226 +6,179 @@ import { API_URL } from "../config";
 import { FaCrown, FaThumbsDown } from "react-icons/fa6";
 
 export default function FinishPage() {
-  let { id } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
+  const [showSummary, setShowSummary] = useState(false);
 
-  var message = "";
+  const reason = searchParams.get("r");
+  const message =
+    reason === "abandon"
+      ? "A player has abandoned the game!"
+      : "The game has finished! Congrats to the players!";
 
   useEffect(() => {
     const fetchGame = async () => {
       try {
         setLoading(true);
         setError(null);
-
         const token = localStorage.getItem("token");
-        if (!token) {
-          setError("Invalid token.");
-          setLoading(false);
-          return;
-        }
+        if (!token) throw new Error("Invalid token.");
 
-        const response = await fetch(`${API_URL}api/v1/game/${id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+        const res = await fetch(`${API_URL}api/v1/game/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            navigate("/404");
-            return;
-          }
-
-          setError(response.statusText.toString());
-          setLoading(false);
-          throw new Error(`Error: ${response.statusText}`);
+        if (!res.ok) {
+          if (res.status === 404) return navigate("/404");
+          throw new Error(res.statusText);
         }
 
-        const _data = await response.json();
-
-        console.log(_data);
+        const _data = await res.json();
+        if (_data.game_state !== "finished")
+          throw new Error("Game not finished");
 
         setData(_data);
-
-        console.log(_data.game_state);
-
-        if (_data.game_state !== "finished") {
-          setError("Game not finished");
-          setLoading(false);
-          throw new Error(`Game not finished!`);
-        }
       } catch (err: any) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-
     fetchGame();
   }, [id]);
 
-  let reason = searchParams.get("r");
-  switch (reason) {
-    case "abandon":
-      message = "A player has abandoned the game!";
-      break;
-    default:
-      message = "The game has finished! Congrats to the players!";
-      break;
-  }
-
   if (loading) return LoadingPage();
-  if (error) return ErrorPage(error);
-  if (data == null) return ErrorPage("Failed to fetch data!");
+  if (error || !data) return ErrorPage(error ?? "Failed to fetch data!");
 
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-800 pt-32">
-      <div className="flex flex-col items-center mb-8">
-        <h2 className="text-3xl font-bold mb-2 font-mono leading-3">
-          GAME OVER!
-        </h2>
-        <p className="text-lg font-thin mb-4">{message}</p>
+    <section className="min-h-screen bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 flex flex-col items-center pt-32 px-4 text-white relative">
+      <h2 className="text-4xl font-bold mb-2 tracking-tight">Game Over</h2>
+      <p className="text-sm font-light mb-8 italic">{message}</p>
+
+      <div className="flex gap-12 bg-black bg-opacity-30 p-6 rounded-xl shadow-lg w-full max-w-2xl justify-around">
+        {[1, 2].map((n) => {
+          const isWinner = data[`player${n}_score`] > 0;
+          return (
+            <div key={n} className="text-center">
+              <div className="text-2xl mb-2 font-semibold">
+                {data[`player${n}_name`]}
+              </div>
+              <div
+                className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center ${
+                  isWinner ? "bg-yellow-400" : "bg-red-400"
+                } text-black`}
+              >
+                {isWinner ? <FaCrown /> : <FaThumbsDown />}
+              </div>
+              <div
+                className={`mt-2 px-3 py-1 rounded-md font-mono text-sm ${
+                  isWinner ? "bg-yellow-400" : "bg-red-400"
+                } text-black`}
+              >
+                {data[`player${n}_score`] > 0
+                  ? `+${data[`player${n}_score`]}`
+                  : data[`player${n}_score`]}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      <section className="pb-4 text-center">
-        <h1 className="text-2xl font-bold mb-4">Final Scores</h1>
-        <div className="grid grid-cols-3 items-center text-lg bg-black bg-opacity-10 backdrop-blur-md p-6 rounded-lg shadow-lg w-full">
-          <div className="flex flex-col items-center gap-2">
-            {data.player1_score > 0 ? (
-              <span className="text-yellow-400 font-bold">
-                <FaCrown />
-              </span>
-            ) : (
-              <span className="text-red-400 font-bold">
-                <FaThumbsDown />
-              </span>
-            )}
-            <div className="inline-flex gap-1 items-center text-center w-full justify-center">
-              {data.player1_name}
-              <span
-                className={
-                  (data.player1_score < 0 ? "bg-red-400 " : "bg-yellow-400 ") +
-                  "rounded-md px-2 py-1 text-white font-mono text-xs"
-                }
-              >
-                {data.player1_score > 0
-                  ? "+" + data.player1_score
-                  : data.player1_score}
-              </span>
-            </div>
-          </div>
+      <button
+        onClick={() => navigate("/")}
+        className="mt-10 px-6 py-2 bg-orange-500 hover:bg-orange-600 rounded-xl shadow-md font-semibold"
+      >
+        Go to Dashboard
+      </button>
 
-          <div className="flex flex-col items-center justify-center w-full">
-            <b className="text-xl">vs</b>
-          </div>
+      {/* View Rounds Button */}
+      <button
+        onClick={() => setShowSummary(true)}
+        className="mt-4 text-sm underline hover:text-orange-200"
+      >
+        View Round Summary
+      </button>
 
-          <div className="flex flex-col items-center gap-2">
-            {data.player2_score > 0 ? (
-              <span className="text-yellow-400 font-bold">
-                <FaCrown />
-              </span>
-            ) : (
-              <span className="text-red-400 font-bold">
-                <FaThumbsDown />
-              </span>
-            )}
-            <div className="inline-flex gap-1 items-center text-center w-full justify-center">
-              {data.player2_name}
-              <span
-                className={
-                  (data.player2_score < 0 ? "bg-red-400 " : "bg-yellow-400 ") +
-                  "rounded-md px-2 py-1 text-white font-mono text-xs"
-                }
-              >
-                {data.player2_score > 0
-                  ? "+" + data.player2_score
-                  : data.player2_score}
-              </span>
-            </div>
+      <div className="text-xs mt-4 text-white/70">Identifier: {id}</div>
+
+      {/* Modal Summary */}
+      {showSummary && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+            <div className="bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded shadow-lg w-full max-w-2xl overflow-y-auto max-h-[90vh]">
+            <button
+              className="absolute top-2 right-4 text-lg text-gray-600 hover:text-black"
+              onClick={() => setShowSummary(false)}
+            >
+              ✕
+            </button>
+            <h3 className="text-xl font-bold mb-4 text-center">
+              Round Summary
+            </h3>
+            <table className="table-auto w-full text-left text-sm">
+              <thead className="bg-white/10">
+                <tr>
+                  <th className="px-3 py-2">Round</th>
+                  <th className="px-3 py-2">{data.player1_name}</th>
+                  <th className="px-3 py-2">{data.player2_name}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.rounds.map(
+                  (round: any, index: number) =>
+                    round.player1_score != 0 &&
+                    round.player2_score != 0 && (
+                      <tr
+                        key={index}
+                        className={"bg-white/10"}
+                      >
+                        <td className="px-3 py-2 font-semibold">
+                          {round.round_number}
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-4 h-4 rounded"
+                              style={{
+                                backgroundColor:
+                                  round.player1_choice === "RED"
+                                    ? "red"
+                                    : round.player1_choice === "BLUE"
+                                    ? "blue"
+                                    : "bg-white/10",
+                              }}
+                            ></div>
+                            ({round.player1_score})
+                          </div>
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-4 h-4 rounded"
+                              style={{
+                                backgroundColor:
+                                  round.player2_choice === "RED"
+                                    ? "red"
+                                    : round.player2_choice === "BLUE"
+                                    ? "blue"
+                                    : "bg-white/10",
+                              }}
+                            ></div>
+                            ({round.player2_score})
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-      </section>
-
-      <section className="pb-12">
-        <button
-          className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2 rounded shadow-md"
-          onClick={() => navigate("/")}
-        >
-          Play again
-        </button>
-      </section>
-
-      <h1 className="text-2xl font-bold mb-4">Rounds Summary</h1>
-
-      <table className="table-auto border-collapse w-full max-w-4xl border border-gray-200 text-black text-left shadow-md bg-transparent">
-        <thead>
-          <tr className="bg-white bg-opacity-30">
-            <th className="border border-gray-500 px-4 py-2 w-[5%]">Round</th>
-            <th className="border border-gray-500 px-4 py-2">
-              {data.player1_name}
-            </th>
-            <th className="border border-gray-500 px-4 py-2">
-              {data.player2_name}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.rounds.map(
-            (round: any, index: number) =>
-              round.player1_score != 0 &&
-              round.player2_score != 0 && (
-                <tr
-                  key={index}
-                  className="odd:bg-gray-700 odd:bg-opacity-10 even:bg-white even:bg-opacity-20"
-                >
-                  <td className="border border-gray-500 px-4 py-2 text-center">
-                    <b>{round.round_number}</b>
-                  </td>
-                  <td className="border border-gray-500 px-4 py-2">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-6 h-6 rounded"
-                        style={{
-                          backgroundColor:
-                            round.player1_choice === "RED"
-                              ? "red"
-                              : round.player1_choice === "BLUE"
-                              ? "blue"
-                              : "gray",
-                        }}
-                      ></div>
-                      <span>({round.player1_score})</span>
-                    </div>
-                  </td>
-                  <td className="border border-gray-500 px-4 py-2">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-6 h-6 rounded"
-                        style={{
-                          backgroundColor:
-                            round.player2_choice === "RED"
-                              ? "red"
-                              : round.player2_choice === "BLUE"
-                              ? "blue"
-                              : "gray",
-                        }}
-                      ></div>
-                      <span>({round.player2_score})</span>
-                    </div>
-                  </td>
-                </tr>
-              )
-          )}
-        </tbody>
-      </table>
-      <div className="text-gray-700 text-xs mt-4">Identifier: {id}</div>
+      )}
     </section>
   );
 }
