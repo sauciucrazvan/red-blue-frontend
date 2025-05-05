@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { WS_URL } from "../config";
-import { FaClipboard, FaCopy } from "react-icons/fa6";
+import { FaCopy } from "react-icons/fa6";
 
 interface WaitingLobbyProps {
   id: string;
