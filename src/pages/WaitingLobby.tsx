@@ -7,10 +7,17 @@ import { FaCopy } from "react-icons/fa6";
 interface WaitingLobbyProps {
   id: string;
   game_code: string;
+  created_at: string;
 }
 
 export default function WaitingLobby(props: WaitingLobbyProps) {
   const navigate = useNavigate();
+
+  const exp_date = new Date(props.created_at);
+  exp_date.setMinutes(exp_date.getMinutes() + 10);
+
+  const exp_hours = exp_date.getHours().toString().padStart(2, "0");
+  const exp_minutes = exp_date.getMinutes().toString().padStart(2, "0");
 
   useEffect(() => {
     if (!props.id || !props.game_code) {
@@ -87,6 +94,10 @@ export default function WaitingLobby(props: WaitingLobbyProps) {
           </div>
           <p className="text-sm text-gray-700 italic">
             The game will (hopefully) start once your opponent joins.
+            <p className="text-xs text-gray-700 italic">
+              Waiting for your opponent until {exp_hours}:{exp_minutes},
+              therefore the lobby will expire.
+            </p>
           </p>
         </div>
       </div>

@@ -198,78 +198,83 @@ const Game = () => {
   if (error) return ErrorPage(error);
   if (data == null) return ErrorPage("Failed to fetch data!");
   if (data.player1_name == null || data.player2_name == null)
-    return <WaitingLobby id={id!} game_code={data.code} />;
+    return (
+      <WaitingLobby
+        id={id!}
+        game_code={data.code}
+        created_at={data.created_at}
+      />
+    );
 
   return (
     <section className="flex flex-col items-center justify-center h-screen w-screen bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-white overflow-y-auto px-4 py-4">
-  {/* Transparent box */}
-  <div className="w-full max-w-3xl bg-white bg-opacity-10 backdrop-blur-md rounded-xl shadow-xl p-6 flex flex-col items-center space-y-6">
-    
-    {/* Top bar with buttons */}
-    <div className="w-full flex justify-between items-center space-x-4">
-      <button
-        onClick={() => setShowSummary(true)}
-        className="bg-gradient-to-r from-red-700 via-purple-300 to-blue-700 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all w-1/3"
-      >
-        View Game Summary
-      </button>
-      <button
-        onClick={() => setChatVisible(true)}
-        className="bg-gradient-to-r from-red-700 via-purple-300 to-blue-700 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all w-1/3"
-      >
-        Open Chat
-      </button>
-      <button
-        onClick={() => setShowSurrenderPopup(true)}
-        className="bg-gradient-to-r from-red-700 via-purple-300 to-blue-700 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all w-1/3"
-      >
-        Surrender
-      </button>
-    </div>
+      {/* Transparent box */}
+      <div className="w-full max-w-3xl bg-white bg-opacity-10 backdrop-blur-md rounded-xl shadow-xl p-6 flex flex-col items-center space-y-6">
+        {/* Top bar with buttons */}
+        <div className="w-full flex justify-between items-center space-x-4">
+          <button
+            onClick={() => setShowSummary(true)}
+            className="bg-gradient-to-r from-red-700 via-purple-300 to-blue-700 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all w-1/3"
+          >
+            View Game Summary
+          </button>
+          <button
+            onClick={() => setChatVisible(true)}
+            className="bg-gradient-to-r from-red-700 via-purple-300 to-blue-700 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all w-1/3"
+          >
+            Open Chat
+          </button>
+          <button
+            onClick={() => setShowSurrenderPopup(true)}
+            className="bg-gradient-to-r from-red-700 via-purple-300 to-blue-700 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all w-1/3"
+          >
+            Surrender
+          </button>
+        </div>
 
-    {/* Header Info */}
-    <div className="text-center font-semibold text-lg w-full flex justify-around items-center bg-black/10 p-4 rounded-lg">
-      <div>
-        {localStorage.getItem("role") === "player1"
-          ? `${data.player1_name} (${data.player1_score})`
-          : `${data.player2_name} (${data.player2_score})`}
-      </div>
-      <div>
-        Round {data.current_round}
-        <GameTimer data={data} />
-      </div>
-      <div>
-        {localStorage.getItem("role") === "player1"
-          ? `${data.player2_name} (${data.player2_score})`
-          : `${data.player1_name} (${data.player1_score})`}
-      </div>
-    </div>
+        {/* Header Info */}
+        <div className="text-center font-semibold text-lg w-full flex justify-around items-center bg-black/10 p-4 rounded-lg">
+          <div>
+            {localStorage.getItem("role") === "player1"
+              ? `${data.player1_name} (${data.player1_score})`
+              : `${data.player2_name} (${data.player2_score})`}
+          </div>
+          <div>
+            Round {data.current_round}
+            <GameTimer data={data} />
+          </div>
+          <div>
+            {localStorage.getItem("role") === "player1"
+              ? `${data.player2_name} (${data.player2_score})`
+              : `${data.player1_name} (${data.player1_score})`}
+          </div>
+        </div>
 
-    {/* Choices */}
-    <div className="grid grid-cols-2 gap-6 w-full">
-      <div
-        className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${selectedColor === "RED" ? "bg-red-700" : "bg-red-500"
-          }`}
-        onClick={() => handleChoice("RED")}
-      >
-        RED
-      </div>
-      <div
-        className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${selectedColor === "BLUE" ? "bg-blue-700" : "bg-blue-500"
-          }`}
-        onClick={() => handleChoice("BLUE")}
-      >
-        BLUE
-      </div>
-    </div>
+        {/* Choices */}
+        <div className="grid grid-cols-2 gap-6 w-full">
+          <div
+            className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${
+              selectedColor === "RED" ? "bg-red-700" : "bg-red-500"
+            }`}
+            onClick={() => handleChoice("RED")}
+          >
+            RED
+          </div>
+          <div
+            className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${
+              selectedColor === "BLUE" ? "bg-blue-700" : "bg-blue-500"
+            }`}
+            onClick={() => handleChoice("BLUE")}
+          >
+            BLUE
+          </div>
+        </div>
 
-    {/* Status Text */}
-    <div className="text-white font-semibold text-lg">
-      {selectedColor
-        ? "Waiting for your opponent..."
-        : "Choose a color!"}
-    </div>
-  </div>
+        {/* Status Text */}
+        <div className="text-white font-semibold text-lg">
+          {selectedColor ? "Waiting for your opponent..." : "Choose a color!"}
+        </div>
+      </div>
 
       {/* Surrender Confirmation Popup */}
       {showSurrenderPopup && (
