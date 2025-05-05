@@ -5,7 +5,7 @@ import { API_URL } from "../config";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  
+
   const [playerName, setPlayerName] = useState("");
   const [joinGameCode, setJoinGameCode] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -15,8 +15,8 @@ export default function Dashboard() {
     if (playerName.length < 3 || playerName.length > 16) {
       toast.error("Player name must be between 3 and 16 characters.", {
         style: {
-          backgroundColor: '#333',
-          color: 'white',
+          backgroundColor: "#333",
+          color: "white",
         },
       });
       return;
@@ -38,14 +38,15 @@ export default function Dashboard() {
       }
 
       const data = await response.json();
+      localStorage.setItem("player_name", playerName);
       localStorage.setItem("role", data.role);
       localStorage.setItem("token", data.token);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
       toast.error(err.message, {
         style: {
-          backgroundColor: '#333',
-          color: 'white',
+          backgroundColor: "#333",
+          color: "white",
         },
       });
     }
@@ -55,8 +56,8 @@ export default function Dashboard() {
     if (playerName.length < 3 || playerName.length > 16) {
       toast.error("Player name must be between 3 and 16 characters.", {
         style: {
-          backgroundColor: '#333',
-          color: 'white',
+          backgroundColor: "#333",
+          color: "white",
         },
       });
       return;
@@ -64,8 +65,8 @@ export default function Dashboard() {
     if (!joinGameCode) {
       toast.error("Game code is required.", {
         style: {
-          backgroundColor: '#333',
-          color: 'white',
+          backgroundColor: "#333",
+          color: "white",
         },
       });
       return;
@@ -92,8 +93,8 @@ export default function Dashboard() {
     } catch (err: any) {
       toast.error(err.message, {
         style: {
-          backgroundColor: '#333',
-          color: 'white',
+          backgroundColor: "#333",
+          color: "white",
         },
       });
     }
@@ -182,10 +183,14 @@ export default function Dashboard() {
         {showHowToPlay && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
             <div className="bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded shadow-lg w-full max-w-2xl overflow-y-auto max-h-[90vh]">
-              <h2 className="text-2xl font-bold mb-4 text-center">How to Play</h2>
+              <h2 className="text-2xl font-bold mb-4 text-center">
+                How to Play
+              </h2>
               <p className="mb-2">
-                Once a game starts, the two users will play a total of <strong>10 rounds</strong>. In each round, they choose between two
-                colors: <span className="text-red-600 font-bold">RED</span> or <span className="text-blue-600 font-bold">BLUE</span>.
+                Once a game starts, the two users will play a total of{" "}
+                <strong>10 rounds</strong>. In each round, they choose between
+                two colors: <span className="text-red-600 font-bold">RED</span>{" "}
+                or <span className="text-blue-600 font-bold">BLUE</span>.
               </p>
               <table className="w-full text-center mb-4 border border-white/20 text-sm md:text-base text-white">
                 <thead className="bg-white/10">
@@ -198,39 +203,77 @@ export default function Dashboard() {
                 </thead>
                 <tbody>
                   <tr className="bg-white/5">
-                    <td><span className="text-red-500 font-semibold">RED</span></td>
-                    <td><span className="text-red-500 font-semibold">RED</span></td>
-                    <td><span className="text-green-400 font-medium">+3</span></td>
-                    <td><span className="text-green-400 font-medium">+3</span></td>
+                    <td>
+                      <span className="text-red-500 font-semibold">RED</span>
+                    </td>
+                    <td>
+                      <span className="text-red-500 font-semibold">RED</span>
+                    </td>
+                    <td>
+                      <span className="text-green-400 font-medium">+3</span>
+                    </td>
+                    <td>
+                      <span className="text-green-400 font-medium">+3</span>
+                    </td>
                   </tr>
                   <tr>
-                    <td><span className="text-red-500 font-semibold">RED</span></td>
-                    <td><span className="text-blue-500 font-semibold">BLUE</span></td>
-                    <td><span className="text-red-400 font-medium">-6</span></td>
-                    <td><span className="text-green-400 font-medium">+6</span></td>
+                    <td>
+                      <span className="text-red-500 font-semibold">RED</span>
+                    </td>
+                    <td>
+                      <span className="text-blue-500 font-semibold">BLUE</span>
+                    </td>
+                    <td>
+                      <span className="text-red-400 font-medium">-6</span>
+                    </td>
+                    <td>
+                      <span className="text-green-400 font-medium">+6</span>
+                    </td>
                   </tr>
                   <tr className="bg-white/5">
-                    <td><span className="text-blue-500 font-semibold">BLUE</span></td>
-                    <td><span className="text-red-500 font-semibold">RED</span></td>
-                    <td><span className="text-green-400 font-medium">+6</span></td>
-                    <td><span className="text-red-400 font-medium">-6</span></td>
+                    <td>
+                      <span className="text-blue-500 font-semibold">BLUE</span>
+                    </td>
+                    <td>
+                      <span className="text-red-500 font-semibold">RED</span>
+                    </td>
+                    <td>
+                      <span className="text-green-400 font-medium">+6</span>
+                    </td>
+                    <td>
+                      <span className="text-red-400 font-medium">-6</span>
+                    </td>
                   </tr>
                   <tr>
-                    <td><span className="text-blue-500 font-semibold">BLUE</span></td>
-                    <td><span className="text-blue-500 font-semibold">BLUE</span></td>
-                    <td><span className="text-red-400 font-medium">-3</span></td>
-                    <td><span className="text-red-400 font-medium">-3</span></td>
+                    <td>
+                      <span className="text-blue-500 font-semibold">BLUE</span>
+                    </td>
+                    <td>
+                      <span className="text-blue-500 font-semibold">BLUE</span>
+                    </td>
+                    <td>
+                      <span className="text-red-400 font-medium">-3</span>
+                    </td>
+                    <td>
+                      <span className="text-red-400 font-medium">-3</span>
+                    </td>
                   </tr>
                 </tbody>
               </table>
               <p className="mb-2">
-                During the game, players can see their score for each past round (e.g. +3, -6, etc.) as well as their total score.
+                During the game, players can see their score for each past round
+                (e.g. +3, -6, etc.) as well as their total score.
               </p>
               <p className="mb-2">
-                <strong>Rounds 9 and 10</strong> have <strong>doubled score</strong> values.
+                <strong>Rounds 9 and 10</strong> have{" "}
+                <strong>doubled score</strong> values.
               </p>
               <p>
-                <strong>WINNING CONDITION:</strong> A player with a positive score at the end is considered a <span className="text-green-600 font-bold">winner</span>. A player with a negative or null score has <span className="text-red-600 font-bold">lost</span>.
+                <strong>WINNING CONDITION:</strong> A player with a positive
+                score at the end is considered a{" "}
+                <span className="text-green-600 font-bold">winner</span>. A
+                player with a negative or null score has{" "}
+                <span className="text-red-600 font-bold">lost</span>.
               </p>
               <div className="mt-6 text-center">
                 <button
