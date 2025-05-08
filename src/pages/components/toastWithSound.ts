@@ -1,6 +1,7 @@
 import { toast } from 'react-hot-toast';
+import soundFile from "/src/assets/wrong-47985.mp3";
 
-const errorSound = new Audio('src/assets/wrong-47985.mp3'); // Must be in public folder
+const errorSound = new Audio(soundFile);
 
 export function toastErrorWithSound(message: string) {
   errorSound.currentTime = 0;
