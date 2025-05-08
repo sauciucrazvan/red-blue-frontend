@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ErrorPage from "./ErrorPage";
 import LoadingPage from "./Loading";
@@ -9,8 +9,12 @@ import GameTimer from "./components/GameTimer";
 import GameSummary from "./components/GameSummary";
 import { toastErrorWithSound } from "./components/toastWithSound";
 
+import soundFile from "../assets/pop-up-notify-smooth-modern-332448.mp3";
+const roundStartSound = new Audio(soundFile);
+
 const Game = () => {
-  let { id } = useParams();
+  const prevRoundRef = useRef<number | null>(null);
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -27,7 +31,6 @@ const Game = () => {
       toastErrorWithSound("Wait for your opponent!");
       return;
     }
-
     setSelectedColor(color);
     chooseColor(color);
   };
@@ -54,11 +57,10 @@ const Game = () => {
         });
 
         if (!response.ok) {
-          if (response.status == 404) {
+          if (response.status === 404) {
             navigate("/404");
             return;
           }
-
           setError(response.statusText.toString());
           setLoading(false);
           throw new Error(`Error: ${response.statusText}`);
@@ -84,7 +86,7 @@ const Game = () => {
     };
 
     fetchGame();
-  }, [id]);
+  }, [id, navigate]);
 
   useEffect(() => {
     let ws: WebSocket;
@@ -139,7 +141,22 @@ const Game = () => {
     };
 
     initializeWebSocket();
-  }, [id]);
+  }, [id, navigate]);
+
+  useEffect(() => {
+    if (!data?.current_round) return;
+
+    const prevRound = prevRoundRef.current;
+    const currentRound = data.current_round;
+
+    if (prevRound !== null && currentRound > prevRound && currentRound !== 1) {
+      roundStartSound.currentTime = 0;
+      roundStartSound.volume = 0.5;
+      roundStartSound.play().catch((e) => console.error("Sound play error:", e));
+    }
+
+    prevRoundRef.current = currentRound;
+  }, [data?.current_round]);
 
   const chooseColor = async (choice: string) => {
     try {
@@ -196,8 +213,8 @@ const Game = () => {
 
   if (loading) return LoadingPage();
   if (error) return ErrorPage(error);
-  if (data == null) return ErrorPage("Failed to fetch data!");
-  if (data.player1_name == null || data.player2_name == null)
+  if (!data) return ErrorPage("Failed to fetch data!");
+  if (!data.player1_name || !data.player2_name)
     return (
       <WaitingLobby
         id={id!}
@@ -208,9 +225,7 @@ const Game = () => {
 
   return (
     <section className="flex flex-col items-center justify-center h-screen w-screen bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-white overflow-y-auto px-4 py-4">
-      {/* Transparent box */}
       <div className="w-full max-w-3xl bg-white bg-opacity-10 backdrop-blur-md rounded-xl shadow-xl p-6 flex flex-col items-center space-y-6">
-        {/* Top bar with buttons */}
         <div className="w-full flex justify-between items-center space-x-4">
           <button
             onClick={() => setShowSummary(true)}
@@ -232,7 +247,6 @@ const Game = () => {
           </button>
         </div>
 
-        {/* Header Info */}
         <div className="text-center font-semibold text-lg w-full flex justify-around items-center bg-black/10 p-4 rounded-lg">
           <div>
             {localStorage.getItem("role") === "player1"
@@ -250,7 +264,6 @@ const Game = () => {
           </div>
         </div>
 
-        {/* Choices */}
         <div className="grid grid-cols-2 gap-6 w-full">
           <div
             className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${
@@ -270,13 +283,11 @@ const Game = () => {
           </div>
         </div>
 
-        {/* Status Text */}
         <div className="text-white font-semibold text-lg">
           {selectedColor ? "Waiting for your opponent..." : "Choose a color!"}
         </div>
       </div>
 
-      {/* Surrender Confirmation Popup */}
       {showSurrenderPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="relative bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded shadow-lg w-full max-w-md">
@@ -304,7 +315,6 @@ const Game = () => {
         </div>
       )}
 
-      {/* Chat Popup */}
       {chatVisible && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="relative bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded shadow-lg w-full max-w-md">
@@ -316,7 +326,6 @@ const Game = () => {
         </div>
       )}
 
-      {/* Summary Modal */}
       {showSummary && (
         <GameSummary
           player1Name={data.player1_name}
