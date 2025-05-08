@@ -49,7 +49,7 @@ const GameSummary: React.FC<GameSummaryProps> = ({ player1Name, player2Name, rou
                               ? "red"
                               : round.player1_choice === "BLUE"
                                 ? "blue"
-                                : "transparent",
+                                : "gray",
                         }}
                       ></div>
                       ({round.player1_score})
@@ -65,7 +65,7 @@ const GameSummary: React.FC<GameSummaryProps> = ({ player1Name, player2Name, rou
                               ? "red"
                               : round.player2_choice === "BLUE"
                                 ? "blue"
-                                : "transparent",
+                                : "gray",
                         }}
                       ></div>
                       ({round.player2_score})
