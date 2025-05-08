@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import toast from "react-hot-toast";
 import ErrorPage from "./ErrorPage";
 import LoadingPage from "./Loading";
 import WaitingLobby from "./WaitingLobby";
@@ -8,6 +7,7 @@ import ChatPopup from "./components/ChatPopup";
 import { API_URL, WS_URL } from "../config";
 import GameTimer from "./components/GameTimer";
 import GameSummary from "./components/GameSummary";
+import { toastErrorWithSound } from "./components/toastWithSound";
 
 const Game = () => {
   let { id } = useParams();
@@ -24,7 +24,7 @@ const Game = () => {
 
   const handleChoice = (color: string) => {
     if (selectedColor) {
-      toast("Wait for your opponent");
+      toastErrorWithSound("Wait for your opponent!");
       return;
     }
 

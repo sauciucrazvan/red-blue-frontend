@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import { API_URL } from "../config";
+import { toastErrorWithSound } from "./components/toastWithSound";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -13,12 +13,7 @@ export default function Dashboard() {
 
   const createGame = async () => {
     if (playerName.length < 3 || playerName.length > 16) {
-      toast.error("Player name must be between 3 and 16 characters.", {
-        style: {
-          backgroundColor: "#333",
-          color: "white",
-        },
-      });
+      toastErrorWithSound("Player name must be between 3 and 16 characters.");
       return;
     }
 
@@ -43,32 +38,17 @@ export default function Dashboard() {
       localStorage.setItem("token", data.token);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
-      toast.error(err.message, {
-        style: {
-          backgroundColor: "#333",
-          color: "white",
-        },
-      });
+      toastErrorWithSound(err.message || "Something went wrong.");
     }
   };
 
   const joinGame = async () => {
     if (playerName.length < 3 || playerName.length > 16) {
-      toast.error("Player name must be between 3 and 16 characters.", {
-        style: {
-          backgroundColor: "#333",
-          color: "white",
-        },
-      });
+      toastErrorWithSound("Player name must be between 3 and 16 characters.");
       return;
     }
     if (!joinGameCode) {
-      toast.error("Game code is required.", {
-        style: {
-          backgroundColor: "#333",
-          color: "white",
-        },
-      });
+      toastErrorWithSound("Please enter a game code.");
       return;
     }
 
@@ -91,12 +71,7 @@ export default function Dashboard() {
       localStorage.setItem("token", data.token);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
-      toast.error(err.message, {
-        style: {
-          backgroundColor: "#333",
-          color: "white",
-        },
-      });
+      toastErrorWithSound(err.message || "Something went wrong.");
     }
   };
 
