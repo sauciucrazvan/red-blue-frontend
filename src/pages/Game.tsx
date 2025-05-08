@@ -4,10 +4,10 @@ import toast from "react-hot-toast";
 import ErrorPage from "./ErrorPage";
 import LoadingPage from "./Loading";
 import WaitingLobby from "./WaitingLobby";
-import ChatPopup from "./ChatPopup";
+import ChatPopup from "./components/ChatPopup";
 import { API_URL, WS_URL } from "../config";
 import GameTimer from "./components/GameTimer";
-import GameSummary from "./GameSummary";
+import GameSummary from "./components/GameSummary";
 
 const Game = () => {
   let { id } = useParams();

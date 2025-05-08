@@ -4,7 +4,7 @@ import LoadingPage from "./Loading";
 import ErrorPage from "./ErrorPage";
 import { API_URL } from "../config";
 import { FaCrown, FaThumbsDown } from "react-icons/fa6";
-import GameSummary from "./GameSummary";
+import GameSummary from "./components/GameSummary";
 
 export default function FinishPage() {
   const { id } = useParams();
