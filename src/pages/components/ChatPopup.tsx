@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface ChatPopupProps {
   currentRound: number;
@@ -10,7 +10,6 @@ const ChatPopup = ({ currentRound, onClose }: ChatPopupProps) => {
   const [chatMessages, setChatMessages] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -18,81 +17,77 @@ const ChatPopup = ({ currentRound, onClose }: ChatPopupProps) => {
 
   const sendMessage = () => {
     if (message.trim()) {
-      setChatMessages((prev) => [...prev, message]);
+      setChatMessages((prevMessages) => [...prevMessages, message]);
       setMessage("");
     }
   };
 
-  const handleClose = () => {
-    setVisible(false);
-    setTimeout(onClose, 300); // match exit animation duration
-  };
-
   return (
-    <AnimatePresence>
-      {visible && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.3 }} // Adjust opacity for better visibility
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 bg-black z-40"
-          />
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8, y: 50, rotateX: 30 }}
+      animate={{
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        rotateX: 0,
+        transition: {
+          duration: 0.5,
+          ease: "easeOut",
+          delay: 0.1, 
+        },
+      }}
+      exit={{
+        opacity: 0,
+        scale: 0.8,
+        y: 50,
+        rotateX: 30,
+        transition: {
+          duration: 0.5, 
+          ease: "easeInOut",
+        },
+      }}
+      className="bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded-lg shadow-lg w-full max-w-md"
+    >
+      <div className="text-xl font-bold mb-2 text-center">
+        Chat - Round {currentRound}
+      </div>
 
-          {/* Chat Popup */}
+      <div className="h-48 overflow-y-auto bg-white/10 p-3 rounded-lg mb-4">
+        {chatMessages.map((msg, index) => (
           <motion.div
-            key="chat-popup"
-            initial={{ opacity: 0, scale: 0.9, y: 40 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 40 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-50 flex items-center justify-center"
+            key={index}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="mb-2"
           >
-            <div className="bg-zinc-900 text-white p-6 rounded-2xl shadow-2xl w-[90vw] max-w-4xl h-[400px] flex flex-col justify-between relative z-10">
-              <div className="text-2xl font-bold text-center mb-4">
-                Chat - Round {currentRound}
-              </div>
-
-              {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto bg-white/10 p-3 rounded-lg mb-3">
-                {chatMessages.map((msg, index) => (
-                  <div key={index} className="mb-2">
-                    • {msg}
-                  </div>
-                ))}
-                <div ref={chatEndRef} />
-              </div>
-
-              {/* Input and Buttons */}
-              <div className="flex flex-col space-y-2">
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Type a message..."
-                  className="w-full p-2 rounded bg-white/10 text-white placeholder-gray-300 outline-none"
-                />
-                <button
-                  onClick={sendMessage}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition"
-                >
-                  Send
-                </button>
-                <button
-                  onClick={handleClose}
-                  className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition"
-                >
-                  Close Chat
-                </button>
-              </div>
-            </div>
+            • {msg}
           </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+        ))}
+        <div ref={chatEndRef} />
+      </div>
+
+      <input
+        type="text"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Type a message..."
+        className="w-full p-2 rounded bg-white/10 text-white placeholder-gray-300 mb-2 outline-none"
+      />
+      <button
+        onClick={sendMessage}
+        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded mb-2 transition"
+      >
+        Send
+      </button>
+      <button
+        onClick={onClose}
+        className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition"
+      >
+        Close Chat
+      </button>
+    </motion.div>
   );
 };
 

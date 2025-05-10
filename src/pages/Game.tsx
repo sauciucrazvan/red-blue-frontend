@@ -4,10 +4,11 @@ import ErrorPage from "./ErrorPage";
 import LoadingPage from "./Loading";
 import WaitingLobby from "./WaitingLobby";
 import ChatPopup from "./components/ChatPopup";
-import { API_URL, WS_URL } from "../config";
 import GameTimer from "./components/GameTimer";
 import GameSummary from "./components/GameSummary";
 import { toastErrorWithSound } from "./components/toastWithSound";
+import { AnimatePresence } from "framer-motion";
+import { API_URL, WS_URL } from "../config";
 
 import soundFile from "../assets/pop-up-notify-smooth-modern-332448.mp3";
 const roundStartSound = new Audio(soundFile);
@@ -266,17 +267,15 @@ const Game = () => {
 
         <div className="grid grid-cols-2 gap-6 w-full">
           <div
-            className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${
-              selectedColor === "RED" ? "bg-red-700" : "bg-red-500"
-            }`}
+            className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${selectedColor === "RED" ? "bg-red-700" : "bg-red-500"
+              }`}
             onClick={() => handleChoice("RED")}
           >
             RED
           </div>
           <div
-            className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${
-              selectedColor === "BLUE" ? "bg-blue-700" : "bg-blue-500"
-            }`}
+            className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${selectedColor === "BLUE" ? "bg-blue-700" : "bg-blue-500"
+              }`}
             onClick={() => handleChoice("BLUE")}
           >
             BLUE
@@ -315,16 +314,16 @@ const Game = () => {
         </div>
       )}
 
-      {chatVisible && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div className="relative bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded shadow-lg w-full max-w-md">
+      <AnimatePresence>
+        {chatVisible && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
             <ChatPopup
               currentRound={data.current_round}
               onClose={() => setChatVisible(false)}
             />
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {showSummary && (
         <GameSummary
