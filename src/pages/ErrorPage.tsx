@@ -1,6 +1,6 @@
 export default function ErrorPage(error: string) {
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-white p-4">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-red-700 to-blue-700 text-white p-4">
       <h1 className="text-6xl font-extrabold mb-4 drop-shadow-lg">Oops!</h1>
       <p className="text-2xl font-semibold mb-2">Something went wrong</p>
       <p className="text-md mb-6 text-center max-w-md">{error}</p>

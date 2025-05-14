@@ -1,9 +1,9 @@
 export default function LoadingPage() {
   return (
-  <div className = "min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-800">
+  <div className = "min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-700 to-blue-700 text-gray-800">
     <div className = "flex items-center gap-4">
       <svg
-        className = "animate-spin h-10 w-10 text-purple-700"
+        className = "animate-spin h-10 w-10 text-white"
         xmlns = "http://www.w3.org/2000/svg"
         fill = "none"
         viewBox = "0 0 24 24"
@@ -24,7 +24,7 @@ export default function LoadingPage() {
         ></path>
 
       </svg>
-      <span className="text-2xl font-semibold animate-pulse">Loading...</span>
+      <span className="text-2xl text-white font-semibold animate-pulse">Loading...</span>
     </div>
   </div>
   );

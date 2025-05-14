@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { WS_URL } from "../config";
 import { FaCopy } from "react-icons/fa6";
-import { motion } from "framer-motion";  // Import motion for animations
+import { motion } from "framer-motion";
 
 interface WaitingLobbyProps {
   id: string;
@@ -71,13 +71,13 @@ export default function WaitingLobby(props: WaitingLobbyProps) {
     } catch (err) {
       console.error("Failed to copy:", err);
       toast.error(
-        "❌ Failed to copy. Please check your browser settings or permissions."
+        "\u274C Failed to copy. Please check your browser settings or permissions."
       );
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-800">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 to-blue-700 text-white">
       <motion.div
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -92,14 +92,14 @@ export default function WaitingLobby(props: WaitingLobbyProps) {
         </p>
         <div
           onClick={copyToClipboard}
-          className="inline-flex items-center gap-1 cursor-pointer text-lg text-slate-800 hover:text-slate-800/80 transition"
+          className="inline-flex items-center gap-1 cursor-pointer text-lg text-white hover:text-white/80 transition"
           title="Click to copy"
         >
           {props.game_code} <FaCopy />
         </div>
-        <p className="text-sm text-gray-700 italic">
+        <p className="text-sm text-white italic">
           The game will (hopefully) start once your opponent joins.
-          <p className="text-xs text-gray-700 italic">
+          <p className="text-xs text-white italic">
             Waiting for your opponent until {exp_hours}:{exp_minutes}, therefore the lobby will expire.
           </p>
         </p>

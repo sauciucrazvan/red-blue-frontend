@@ -68,10 +68,9 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-gray-800 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 to-blue-700 text-gray-800 p-6">
       <div className="w-full max-w-2xl flex flex-col items-center">
-
-        {/* Animated Logo Entrance */}
+        {/* Logo */}
         <motion.h1
           className="relative text-6xl font-extrabold text-center mt-6 mb-4"
           initial={{ y: -100, opacity: 0 }}
@@ -84,52 +83,45 @@ export default function Dashboard() {
           <span className="absolute left-3/4 -translate-x-1/2 top-1/2 -translate-y-1/2 w-28 h-28 bg-blue-600 rounded-full z-0 opacity-90"></span>
         </motion.h1>
 
-        {/* Animated Form Entrance */}
+        {/* Name Input and Buttons */}
         <motion.div
-          className="w-full max-w-md mt-6 flex flex-col items-center"
+          className="w-full max-w-md mt-6 flex flex-col items-center gap-4"
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 70, damping: 10, delay: 0.3 }}
         >
           <input
             type="text"
-            className="w-full border border-gray-400 rounded p-2 text-center mb-4"
+            className="w-full bg-gray-100 border border-gray-400 rounded p-2 text-center"
             placeholder="Enter your name"
             value={playerName}
             onChange={(e) => setPlayerName(e.target.value)}
           />
 
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full">
-            <div className="w-full max-w-xs border border-white bg-white bg-opacity-10 backdrop-blur-md rounded p-6 shadow-md flex flex-col justify-center items-center text-center">
-              <h2 className="text-xl font-bold mb-2">Create a Game</h2>
-              <button
-                className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
-                onClick={createGame}
-              >
-                Start New Game
-              </button>
-            </div>
-
-            <div className="w-full max-w-xs border border-white bg-white bg-opacity-10 backdrop-blur-md rounded p-6 shadow-md flex flex-col justify-center items-center text-center">
-              <h2 className="text-xl font-bold mb-2">Join a Game</h2>
-              <button
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-                onClick={() => setShowJoinModal(true)}
-              >
-                Enter Game Code
-              </button>
-            </div>
+          <div className="w-full flex flex-row gap-4">
+            <button
+              className="w-1/2 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded"
+              onClick={createGame}
+            >
+              Start New Game
+            </button>
+            <button
+              className="w-1/2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded"
+              onClick={() => setShowJoinModal(true)}
+            >
+              Enter Game Code
+            </button>
           </div>
 
           <button
-            className="mt-6 underline text-white hover:text-gray-300"
+            className="mt-0 underline text-white hover:text-gray-300"
             onClick={() => setShowHowToPlay(true)}
           >
             Don't know how to play?
           </button>
         </motion.div>
 
-        {/* JOIN GAME MODAL */}
+        {/* Join Game Modal */}
         <AnimatePresence>
           {showJoinModal && (
             <motion.div
@@ -172,7 +164,7 @@ export default function Dashboard() {
           )}
         </AnimatePresence>
 
-        {/* HOW TO PLAY MODAL */}
+        {/* How to Play Modal */}
         <AnimatePresence>
           {showHowToPlay && (
             <motion.div
@@ -188,13 +180,10 @@ export default function Dashboard() {
                 exit={{ y: 50, opacity: 0 }}
                 transition={{ duration: 0.4 }}
               >
-                <h2 className="text-2xl font-bold mb-4 text-center">
-                  How to Play
-                </h2>
+                <h2 className="text-2xl font-bold mb-4 text-center">How to Play</h2>
                 <p className="mb-2">
-                  Once a game starts, the two users will play a total of{" "}
-                  <strong>10 rounds</strong>. In each round, they choose between
-                  two colors:{" "}
+                  Once a game starts, the two users will play a total of <strong>10 rounds</strong>.
+                  In each round, they choose between two colors:{" "}
                   <span className="text-red-600 font-bold">RED</span> or{" "}
                   <span className="text-blue-600 font-bold">BLUE</span>.
                 </p>
@@ -209,76 +198,42 @@ export default function Dashboard() {
                   </thead>
                   <tbody>
                     <tr className="bg-white/5">
-                      <td>
-                        <span className="text-red-500 font-semibold">RED</span>
-                      </td>
-                      <td>
-                        <span className="text-red-500 font-semibold">RED</span>
-                      </td>
-                      <td>
-                        <span className="text-green-400 font-medium">+3</span>
-                      </td>
-                      <td>
-                        <span className="text-green-400 font-medium">+3</span>
-                      </td>
+                      <td className="text-red-500 font-semibold">RED</td>
+                      <td className="text-red-500 font-semibold">RED</td>
+                      <td className="text-green-400 font-medium">+3</td>
+                      <td className="text-green-400 font-medium">+3</td>
                     </tr>
                     <tr>
-                      <td>
-                        <span className="text-red-500 font-semibold">RED</span>
-                      </td>
-                      <td>
-                        <span className="text-blue-500 font-semibold">BLUE</span>
-                      </td>
-                      <td>
-                        <span className="text-red-400 font-medium">-6</span>
-                      </td>
-                      <td>
-                        <span className="text-green-400 font-medium">+6</span>
-                      </td>
+                      <td className="text-red-500 font-semibold">RED</td>
+                      <td className="text-blue-500 font-semibold">BLUE</td>
+                      <td className="text-red-400 font-medium">-6</td>
+                      <td className="text-green-400 font-medium">+6</td>
                     </tr>
                     <tr className="bg-white/5">
-                      <td>
-                        <span className="text-blue-500 font-semibold">BLUE</span>
-                      </td>
-                      <td>
-                        <span className="text-red-500 font-semibold">RED</span>
-                      </td>
-                      <td>
-                        <span className="text-green-400 font-medium">+6</span>
-                      </td>
-                      <td>
-                        <span className="text-red-400 font-medium">-6</span>
-                      </td>
+                      <td className="text-blue-500 font-semibold">BLUE</td>
+                      <td className="text-red-500 font-semibold">RED</td>
+                      <td className="text-green-400 font-medium">+6</td>
+                      <td className="text-red-400 font-medium">-6</td>
                     </tr>
                     <tr>
-                      <td>
-                        <span className="text-blue-500 font-semibold">BLUE</span>
-                      </td>
-                      <td>
-                        <span className="text-blue-500 font-semibold">BLUE</span>
-                      </td>
-                      <td>
-                        <span className="text-red-400 font-medium">-3</span>
-                      </td>
-                      <td>
-                        <span className="text-red-400 font-medium">-3</span>
-                      </td>
+                      <td className="text-blue-500 font-semibold">BLUE</td>
+                      <td className="text-blue-500 font-semibold">BLUE</td>
+                      <td className="text-red-400 font-medium">-3</td>
+                      <td className="text-red-400 font-medium">-3</td>
                     </tr>
                   </tbody>
                 </table>
                 <p className="mb-2">
-                  During the game, players can see their score for each past
-                  round (e.g. +3, -6, etc.) as well as their total score.
+                  During the game, players can see their score for each past round
+                  (e.g. +3, -6, etc.) as well as their total score.
                 </p>
                 <p className="mb-2">
-                  <strong>Rounds 9 and 10</strong> have{" "}
-                  <strong>doubled score</strong> values.
+                  <strong>Rounds 9 and 10</strong> have <strong>doubled score</strong> values.
                 </p>
                 <p>
                   <strong>WINNING CONDITION:</strong> A player with a positive
                   score at the end is considered a{" "}
-                  <span className="text-green-600 font-bold">winner</span>. A
-                  player with a negative or null score has{" "}
+                  <span className="text-green-600 font-bold">winner</span>. A player with a negative or null score has{" "}
                   <span className="text-red-600 font-bold">lost</span>.
                 </p>
                 <div className="mt-6 text-center">
