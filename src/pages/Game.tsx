@@ -1,23 +1,40 @@
+// Game.tsx complet refactorizat cu timer centrat
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ErrorPage from "./ErrorPage";
 import LoadingPage from "./Loading";
 import WaitingLobby from "./WaitingLobby";
 import ChatPopup from "./components/ChatPopup";
-import GameTimer from "./components/GameTimer";
 import GameSummary from "./components/GameSummary";
 import { toastErrorWithSound } from "./components/toastWithSound";
 import { AnimatePresence } from "framer-motion";
 import { API_URL, WS_URL } from "../config";
-
 import soundFile from "../assets/pop-up-notify-smooth-modern-332448.mp3";
+import { FiCheckCircle } from "react-icons/fi";
+
 const roundStartSound = new Audio(soundFile);
+
+function getInterpolatedColor(timer: number): string {
+  const t = timer / 60;
+  let r, g, b;
+  if (t > 0.5) {
+    const ratio = (t - 0.5) * 2;
+    r = 59 + (139 - 59) * (1 - ratio);
+    g = 130 + (92 - 130) * (1 - ratio);
+    b = 246;
+  } else {
+    const ratio = t * 2;
+    r = 139 + (239 - 139) * (1 - ratio);
+    g = 92 + (68 - 92) * (1 - ratio);
+    b = 246 + (68 - 246) * (1 - ratio);
+  }
+  return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+}
 
 const Game = () => {
   const prevRoundRef = useRef<number | null>(null);
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,6 +43,7 @@ const Game = () => {
   const [chatVisible, setChatVisible] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [showSurrenderPopup, setShowSurrenderPopup] = useState(false);
+  const [timer, setTimer] = useState<number>(60);
 
   const handleChoice = (color: string) => {
     if (selectedColor) {
@@ -41,14 +59,8 @@ const Game = () => {
       try {
         setLoading(true);
         setError(null);
-
         const token = localStorage.getItem("token");
-        if (!token) {
-          setError("Invalid token.");
-          setLoading(false);
-          return;
-        }
-
+        if (!token) throw new Error("Invalid token.");
         const response = await fetch(`${API_URL}api/v1/game/${id}`, {
           method: "GET",
           headers: {
@@ -56,23 +68,10 @@ const Game = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-
         if (!response.ok) {
-          if (response.status === 404) {
-            navigate("/404");
-            return;
-          }
-          setError(response.statusText.toString());
-          setLoading(false);
-          throw new Error(`Error: ${response.statusText}`);
+          if (response.status === 404) navigate("/404");
+          throw new Error(response.statusText);
         }
-
-        if (!localStorage.getItem("role")) {
-          setError("Player role is not defined!");
-          setLoading(false);
-          throw new Error(`Player role is not defined`);
-        }
-
         const data = await response.json();
         setData(data);
         setPlayerName(
@@ -85,29 +84,19 @@ const Game = () => {
         setError(err.message);
       }
     };
-
     fetchGame();
   }, [id, navigate]);
 
   useEffect(() => {
     let ws: WebSocket;
-
     const initializeWebSocket = () => {
       try {
         ws = new WebSocket(`${WS_URL}ws/game/${id}`);
-
-        ws.onopen = () => {
-          console.log("WebSocket connection established");
-        };
-
         ws.onmessage = (event) => {
           try {
             const wsData = JSON.parse(event.data);
-
-            if (!wsData.game_state && wsData.game_state === "finished") {
-              navigate(`/summary/${id}?r=abandon`);
-            }
-
+            if (wsData.game_state === "finished")
+              navigate(`/summary/${id}?r=finish`);
             if (wsData.next_round) {
               setData((prev: any) => ({
                 ...prev,
@@ -118,46 +107,45 @@ const Game = () => {
               }));
               setSelectedColor(null);
             }
-
-            if (wsData.game_state === "finished") {
-              navigate(`/summary/${id}?r=finish`);
-            }
           } catch (err) {
             console.error("Failed to parse WebSocket message:", err);
           }
-        };
-
-        ws.onerror = (error) => {
-          console.error("WebSocket error:", error);
-          setError("Failed to connect to WebSocket");
-        };
-
-        ws.onclose = () => {
-          console.log("WebSocket connection closed");
         };
       } catch (err) {
         console.error("WebSocket initialization error:", err);
         setError("Failed to initialize WebSocket");
       }
     };
-
     initializeWebSocket();
   }, [id, navigate]);
 
   useEffect(() => {
     if (!data?.current_round) return;
-
     const prevRound = prevRoundRef.current;
     const currentRound = data.current_round;
-
     if (prevRound !== null && currentRound > prevRound && currentRound !== 1) {
       roundStartSound.currentTime = 0;
       roundStartSound.volume = 0.5;
-      roundStartSound.play().catch((e) => console.error("Sound play error:", e));
+      roundStartSound
+        .play()
+        .catch((e) => console.error("Sound play error:", e));
     }
-
     prevRoundRef.current = currentRound;
   }, [data?.current_round]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (data?.game_state === "waiting") return;
+      const round = data?.rounds?.[data?.current_round - 1];
+      if (!round?.created_at) return;
+      const createdTime = new Date(round.created_at).getTime();
+      const now = Date.now();
+      const elapsed = Math.floor((now - createdTime) / 1000);
+      const remaining = 60 - elapsed;
+      setTimer(remaining > 0 ? remaining : 0);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [data]);
 
   const chooseColor = async (choice: string) => {
     try {
@@ -165,26 +153,21 @@ const Game = () => {
         `${API_URL}api/v1/game/${id}/round/${data?.current_round || 1}/choice`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             game_id: id,
             round_number: data?.current_round || 1,
             player_name: playerName,
-            choice: choice,
+            choice,
             token: localStorage.getItem("token"),
           }),
         }
       );
-
       if (!response.ok) {
         const errorDetail = await response.json();
-        throw new Error(`Error: ${errorDetail.detail || response.statusText}`);
+        throw new Error(errorDetail.detail || response.statusText);
       }
-
-      const response_data = await response.json();
-      console.log(response_data.message);
+      await response.json();
     } catch (error: any) {
       console.error("Error choosing color:", error.message);
       setError(`Failed to submit choice: ${error.message}`);
@@ -195,9 +178,7 @@ const Game = () => {
     try {
       await fetch(`${API_URL}api/v1/game/${id}/abandon`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           game_id: id,
           player_name: playerName,
@@ -225,65 +206,115 @@ const Game = () => {
     );
 
   return (
-    <section className="flex flex-col items-center justify-center h-screen w-screen bg-gradient-to-br from-red-700 via-purple-300 to-blue-700 text-white overflow-y-auto px-4 py-4">
-      <div className="w-full max-w-3xl bg-white bg-opacity-10 backdrop-blur-md rounded-xl shadow-xl p-6 flex flex-col items-center space-y-6">
-        <div className="w-full flex justify-between items-center space-x-4">
+    <div className="flex flex-col items-center justify-center h-screen w-screen bg-gradient-to-br from-red-700 to-blue-700 text-white overflow-y-auto px-4 py-4">
+      <div className="bg-black/20 backdrop-blur-md border border-black/20 p-8 rounded-3xl shadow-2xl w-full max-w-5xl flex flex-col items-center relative gap-8">
+        <h2 className="text-3xl font-bold text-white">
+          Round {data.current_round}
+        </h2>
+
+        <div className="flex justify-between items-center gap-12 w-full max-w-5xl px-10">
+          <div className="flex-1 flex justify-end">
+            <div className="bg-white/10 backdrop-blur-md p-4 px-6 rounded-2xl text-center shadow-md w-full max-w-xs">
+              <div className="text-white text-lg font-semibold mb-1">
+                {data.player1_name}
+              </div>
+              <div
+                className={`text-3xl font-bold ${
+                  data.player1_score >= 0 ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                {data.player1_score >= 0 ? "+" : ""}
+                {data.player1_score} pts
+              </div>
+              <div className="italic text-sm text-white/60">
+                {data.player1_score >= 0 ? "Winning" : "Losing"}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-shrink-0">
+            <div className="relative w-40 h-40">
+              <svg className="absolute top-0 left-0 w-full h-full">
+                <circle
+                  cx="50%"
+                  cy="50%"
+                  r="70"
+                  stroke={getInterpolatedColor(timer)}
+                  strokeWidth="15"
+                  fill="transparent"
+                  strokeDasharray={2 * Math.PI * 70}
+                  strokeDashoffset={2 * Math.PI * 70 * ((60 - timer) / 60)}
+                  className="transition-all duration-1000 ease-linear"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center text-5xl font-bold text-white">
+                {timer}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 flex justify-start">
+            <div className="bg-white/10 backdrop-blur-md p-4 px-6 rounded-2xl text-center shadow-md w-full max-w-xs">
+              <div className="text-white text-lg font-semibold mb-1">
+                {data.player2_name}
+              </div>
+              <div
+                className={`text-3xl font-bold ${
+                  data.player2_score >= 0 ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                {data.player2_score >= 0 ? "+" : ""}
+                {data.player2_score} pts
+              </div>
+              <div className="italic text-sm text-white/60">
+                {data.player2_score >= 0 ? "Winning" : "Losing"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-10 w-full max-w-5xl mt-6 px-10 z-10">
+          {["RED", "BLUE"].map((color) => (
+            <div
+              key={color}
+              onClick={() => handleChoice(color)}
+              className={`relative transition-all duration-300 rounded-xl text-center text-4xl font-bold py-16 cursor-pointer border-4 ${
+                selectedColor === color
+                  ? `bg-${color.toLowerCase()}-600 border-white`
+                  : `bg-${color.toLowerCase()}-500 border-transparent hover:scale-105`
+              }`}
+            >
+              {color}
+              {selectedColor === color && (
+                <FiCheckCircle className="absolute top-3 right-3 text-white text-3xl animate-ping-once" />
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 italic text-white/90 text-center">
+          {selectedColor
+            ? `You selected: ${selectedColor}`
+            : "Choose wisely..."}
+          <div className="mt-1 text-sm text-white/90">
+            System:{" "}
+            {selectedColor ? "Waiting for opponent..." : "Round in progress"}
+          </div>
+        </div>
+
+        <div className="flex gap-10">
           <button
             onClick={() => setShowSummary(true)}
-            className="bg-gradient-to-r from-red-700 via-purple-300 to-blue-700 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all w-1/3"
+            className="bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-6 rounded-lg transition-all shadow-md"
           >
-            View Game Summary
-          </button>
-          <button
-            onClick={() => setChatVisible(true)}
-            className="bg-gradient-to-r from-red-700 via-purple-300 to-blue-700 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all w-1/3"
-          >
-            Open Chat
+            Summary
           </button>
           <button
             onClick={() => setShowSurrenderPopup(true)}
-            className="bg-gradient-to-r from-red-700 via-purple-300 to-blue-700 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all w-1/3"
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-all shadow-md"
           >
             Surrender
           </button>
-        </div>
-
-        <div className="text-center font-semibold text-lg w-full flex justify-around items-center bg-black/10 p-4 rounded-lg">
-          <div>
-            {localStorage.getItem("role") === "player1"
-              ? `${data.player1_name} (${data.player1_score})`
-              : `${data.player2_name} (${data.player2_score})`}
-          </div>
-          <div>
-            Round {data.current_round}
-            <GameTimer data={data} />
-          </div>
-          <div>
-            {localStorage.getItem("role") === "player1"
-              ? `${data.player2_name} (${data.player2_score})`
-              : `${data.player1_name} (${data.player1_score})`}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6 w-full">
-          <div
-            className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${selectedColor === "RED" ? "bg-red-700" : "bg-red-500"
-              }`}
-            onClick={() => handleChoice("RED")}
-          >
-            RED
-          </div>
-          <div
-            className={`text-center font-bold text-4xl py-16 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 ${selectedColor === "BLUE" ? "bg-blue-700" : "bg-blue-500"
-              }`}
-            onClick={() => handleChoice("BLUE")}
-          >
-            BLUE
-          </div>
-        </div>
-
-        <div className="text-white font-semibold text-lg">
-          {selectedColor ? "Waiting for your opponent..." : "Choose a color!"}
         </div>
       </div>
 
@@ -333,7 +364,7 @@ const Game = () => {
           onClose={() => setShowSummary(false)}
         />
       )}
-    </section>
+    </div>
   );
 };
 
