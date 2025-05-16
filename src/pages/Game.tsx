@@ -220,14 +220,13 @@ const Game = () => {
               </div>
               <div
                 className={`text-3xl font-bold ${
-                  data.player1_score >= 0 ? "text-green-400" : "text-red-400"
+                  data.player1_score > 0 ? "text-green-400" : "text-red-400"
                 }`}
               >
-                {data.player1_score >= 0 ? "+" : ""}
                 {data.player1_score} pts
               </div>
               <div className="italic text-sm text-white/60">
-                {data.player1_score >= 0 ? "Winning" : "Losing"}
+                {data.player1_score > 0 ? "Winning" : "Losing"}
               </div>
             </div>
           </div>
@@ -260,14 +259,13 @@ const Game = () => {
               </div>
               <div
                 className={`text-3xl font-bold ${
-                  data.player2_score >= 0 ? "text-green-400" : "text-red-400"
+                  data.player2_score > 0 ? "text-green-400" : "text-red-400"
                 }`}
               >
-                {data.player2_score >= 0 ? "+" : ""}
                 {data.player2_score} pts
               </div>
               <div className="italic text-sm text-white/60">
-                {data.player2_score >= 0 ? "Winning" : "Losing"}
+                {data.player2_score > 0 ? "Winning" : "Losing"}
               </div>
             </div>
           </div>
@@ -356,14 +354,16 @@ const Game = () => {
         )}
       </AnimatePresence>
 
-      {showSummary && (
-        <GameSummary
-          player1Name={data.player1_name}
-          player2Name={data.player2_name}
-          rounds={data.rounds}
-          onClose={() => setShowSummary(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showSummary && (
+          <GameSummary
+            player1Name={data.player1_name}
+            player2Name={data.player2_name}
+            rounds={data.rounds}
+            onClose={() => setShowSummary(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
