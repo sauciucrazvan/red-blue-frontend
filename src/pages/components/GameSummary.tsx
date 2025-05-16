@@ -16,14 +16,19 @@ interface GameSummaryProps {
   onClose: () => void;
 }
 
-const GameSummary: React.FC<GameSummaryProps> = ({ player1Name, player2Name, rounds, onClose }) => {
+const GameSummary: React.FC<GameSummaryProps> = ({
+  player1Name,
+  player2Name,
+  rounds,
+  onClose,
+}) => {
   const [isVisible, setIsVisible] = useState(true);
 
   const handleClose = () => {
-    setIsVisible(false); 
+    setIsVisible(false);
     setTimeout(() => {
-      onClose(); 
-    }, 500); 
+      onClose();
+    }, 500);
   };
 
   return (
@@ -31,9 +36,9 @@ const GameSummary: React.FC<GameSummaryProps> = ({ player1Name, player2Name, rou
       {isVisible && (
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.8 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
         >
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: -50 }}
@@ -42,11 +47,11 @@ const GameSummary: React.FC<GameSummaryProps> = ({ player1Name, player2Name, rou
               scale: 0.8,
               opacity: 0,
               y: 50,
-              transition: { duration: 0.5 }, 
+              transition: { duration: 0.5 },
             }}
             transition={{
-              duration: 0.5, 
-              type: "spring", 
+              duration: 0.5,
+              type: "spring",
               stiffness: 300,
               damping: 25,
             }}
@@ -78,7 +83,9 @@ const GameSummary: React.FC<GameSummaryProps> = ({ player1Name, player2Name, rou
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
                     >
-                      <td className="px-3 py-2 font-semibold">{round.round_number}</td>
+                      <td className="px-3 py-2 font-semibold">
+                        {round.round_number}
+                      </td>
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-2">
                           <div
