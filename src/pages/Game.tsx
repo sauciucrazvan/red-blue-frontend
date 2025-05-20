@@ -1,4 +1,3 @@
-// Game.tsx complet refactorizat cu timer centrat
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ErrorPage from "./ErrorPage";
@@ -40,11 +39,14 @@ const Game = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const [playerName, setPlayerName] = useState<string | null>(null);
-  const [chatVisible, setChatVisible] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [showSurrenderPopup, setShowSurrenderPopup] = useState(false);
   const [timer, setTimer] = useState<number>(60);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
+  const [chatPromptVisible, setChatPromptVisible] = useState(false);
+  const [chatIntent, setChatIntentState] = useState<{ [round: number]: { self: boolean; opponent: boolean } }>({});
+  const [chatOpen, setChatOpen] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const handleChoice = (color: string) => {
     if (selectedColor) {
@@ -54,6 +56,17 @@ const Game = () => {
     setSelectedColor(color);
     chooseColor(color);
   };
+
+  const updateChatIntent = (round: number, who: "self" | "opponent", value: boolean) => {
+    setChatIntentState((prev) => ({
+      ...prev,
+      [round]: {
+        ...prev[round],
+        [who]: value,
+      },
+    }));
+  };
+
 
   useEffect(() => {
     const fetchGame = async () => {
@@ -90,18 +103,31 @@ const Game = () => {
 
   useEffect(() => {
     let ws: WebSocket;
+
     const initializeWebSocket = () => {
       try {
         ws = new WebSocket(`${WS_URL}ws/game/${id}`);
+        wsRef.current = ws;
+
         ws.onmessage = (event) => {
           try {
             const wsData = JSON.parse(event.data);
-            setInfoMsg(wsData.message);
-            if (wsData.game_state === "finished") {
-              if (wsData.message.includes("abandoned"))
-                navigate(`/summary/${id}?r=abandon`);
-              else navigate(`/summary/${id}?r=finish`);
+            console.log("Received from WebSocket:", wsData);
+
+            if (wsData.message) {
+              setInfoMsg(wsData.message);
             }
+
+            if (wsData.game_state === "finished") {
+              if (wsData.message?.includes("abandoned")) {
+                setInfoMsg("Your opponent has abandoned the game.");
+                navigate(`/summary/${id}?r=abandon`);
+              } else {
+                setInfoMsg("The game has ended.");
+                navigate(`/summary/${id}?r=finish`);
+              }
+            }
+
             if (wsData.next_round) {
               setData((prev: any) => ({
                 ...prev,
@@ -111,18 +137,39 @@ const Game = () => {
                 rounds: wsData.rounds,
               }));
               setSelectedColor(null);
+              setInfoMsg(`Round ${wsData.next_round} has started.`);
             }
+
+            if (wsData.type === "chat-intent" && wsData.round === data?.current_round) {
+              if (wsData.player_name !== playerName) {
+                updateChatIntent(wsData.round, "opponent", wsData.accept);
+
+                if (wsData.accept) {
+                  setInfoMsg("Your opponent accepted the chat invitation.");
+                } else {
+                  setInfoMsg("Your opponent declined the chat invitation.");
+                }
+              }
+            }
+
+            if (wsData.type === "chat-close") {
+              setChatOpen(false);
+              setInfoMsg("The chat was closed by your opponent.");
+            }
+
           } catch (err) {
             console.error("Failed to parse WebSocket message:", err);
+            setInfoMsg("Error while receiving a WebSocket message.");
           }
         };
       } catch (err) {
         console.error("WebSocket initialization error:", err);
-        setError("Failed to initialize WebSocket");
+        setInfoMsg("WebSocket connection failed to initialize.");
       }
     };
+
     initializeWebSocket();
-  }, [id, navigate]);
+  }, [id, navigate, data?.current_round, playerName]);
 
   useEffect(() => {
     if (!data?.current_round) return;
@@ -151,6 +198,34 @@ const Game = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, [data]);
+
+  useEffect(() => {
+    if (data?.current_round === 4 || data?.current_round === 8) {
+      setChatPromptVisible(true);
+    }
+  }, [data?.current_round]);
+
+  const setChatIntent = (accept: boolean) => {
+    updateChatIntent(data?.current_round, "self", accept);
+
+    wsRef.current?.send(JSON.stringify({
+      type: "chat-intent",
+      round: data?.current_round,
+      player_name: playerName,
+      accept,
+    }));
+  };
+
+ 
+
+  useEffect(() => {
+    const round = data?.current_round;
+    if (!round) return;
+    const intent = chatIntent[round];
+    if (intent?.self && intent?.opponent) {
+      setChatOpen(true);
+    }
+  }, [chatIntent, data?.current_round]);
 
   const chooseColor = async (choice: string) => {
     if (data == null) return;
@@ -229,9 +304,8 @@ const Game = () => {
                 {data.player1_name}
               </div>
               <div
-                className={`text-3xl font-bold ${
-                  data.player1_score > 0 ? "text-green-400" : "text-red-400"
-                }`}
+                className={`text-3xl font-bold ${data.player1_score > 0 ? "text-green-400" : "text-red-400"
+                  }`}
               >
                 {data.player1_score} pts
               </div>
@@ -268,9 +342,8 @@ const Game = () => {
                 {data.player2_name}
               </div>
               <div
-                className={`text-3xl font-bold ${
-                  data.player2_score > 0 ? "text-green-400" : "text-red-400"
-                }`}
+                className={`text-3xl font-bold ${data.player2_score > 0 ? "text-green-400" : "text-red-400"
+                  }`}
               >
                 {data.player2_score} pts
               </div>
@@ -286,11 +359,10 @@ const Game = () => {
             <div
               key={color}
               onClick={() => handleChoice(color)}
-              className={`relative transition-all duration-300 rounded-xl text-center text-4xl font-bold py-16 cursor-pointer border-4 ${
-                selectedColor === color
-                  ? `bg-${color.toLowerCase()}-600 border-white`
-                  : `bg-${color.toLowerCase()}-500 border-transparent hover:scale-105`
-              }`}
+              className={`relative transition-all duration-300 rounded-xl text-center text-4xl font-bold py-16 cursor-pointer border-4 ${selectedColor === color
+                ? `bg-${color.toLowerCase()}-600 border-white`
+                : `bg-${color.toLowerCase()}-500 border-transparent hover:scale-105`
+                }`}
             >
               {color}
               {selectedColor === color && (
@@ -341,13 +413,13 @@ const Game = () => {
                   abandonGame();
                   setShowSurrenderPopup(false);
                 }}
-                className="bg-gradient-to-r from-red-700 via-red-500 to-red-400 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all"
+                className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
               >
                 Yes, Surrender
               </button>
               <button
                 onClick={() => setShowSurrenderPopup(false)}
-                className="bg-gradient-to-r from-blue-700 via-blue-500 to-blue-400 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
               >
                 No, Go Back
               </button>
@@ -356,16 +428,56 @@ const Game = () => {
         </div>
       )}
 
-      <AnimatePresence>
-        {chatVisible && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-            <ChatPopup
-              currentRound={data.current_round}
-              onClose={() => setChatVisible(false)}
-            />
+      {chatPromptVisible && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-black bg-opacity-20 backdrop-blur-md rounded p-6 text-white shadow-lg w-full max-w-sm">
+            <h2 className="text-xl font-bold mb-4 flex justify-around gap-6">Do you want to chat?</h2>
+            <div className="flex justify-around gap-6">
+              <button
+                onClick={() => {
+                  setChatIntent(false);
+                  setChatPromptVisible(false);
+                }}
+                className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
+              >
+                No, I don't
+              </button>
+              <button
+                onClick={() => {
+                  setChatIntent(true);
+                  setChatPromptVisible(false);
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+              >
+                Yes, I do
+              </button>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
+
+      <AnimatePresence>
+  {chatOpen && (
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+      <ChatPopup
+        currentRound={data.current_round}
+        socket={wsRef.current!}
+        onClose={() => {
+          wsRef.current?.send(
+            JSON.stringify({
+              type: "chat-close",
+              round: data?.current_round,
+            })
+          );
+          setChatOpen(false);
+          setChatIntent(false);
+          setChatPromptVisible(false);
+        }}
+      />
+    </div>
+  )}
+</AnimatePresence>
+
 
       <AnimatePresence>
         {showSummary && (
