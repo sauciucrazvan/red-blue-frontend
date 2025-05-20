@@ -92,7 +92,7 @@ export default function JoinPage() {
             </h2>
             {referee && (
               <p className="text-md text-gray-300 text-center">
-                by your friend, <b>{referee}</b>. Can you beat him?
+                by your friend, <b>{referee}</b>. Can you beat them?
                 <br />
               </p>
             )}
