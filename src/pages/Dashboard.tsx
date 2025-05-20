@@ -52,7 +52,10 @@ export default function Dashboard() {
       const response = await fetch(API_URL + "api/v1/game/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player_name: playerName, code: joinGameCode }),
+        body: JSON.stringify({
+          player_name: playerName,
+          code: joinGameCode.toUpperCase(),
+        }),
       });
 
       if (!response.ok) {
