@@ -248,7 +248,13 @@ export default function Game() {
         {/* Player Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6 w-full px-4 sm:px-10">
           <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl text-center shadow-md w-full md:max-w-xs">
-            <div className="text-white text-lg font-semibold">
+            <div
+              className={`text-lg font-semibold ${
+                playerName === data.player1_name
+                  ? "text-yellow-400"
+                  : "text-white"
+              }`}
+            >
               {data.player1_name}
             </div>
             <div
@@ -283,7 +289,13 @@ export default function Game() {
           </div>
 
           <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl text-center shadow-md w-full md:max-w-xs">
-            <div className="text-white text-lg font-semibold">
+            <div
+              className={`text-lg font-semibold ${
+                playerName === data.player2_name
+                  ? "text-yellow-400"
+                  : "text-white"
+              }`}
+            >
               {data.player2_name}
             </div>
             <div

@@ -28,6 +28,11 @@ export default function JoinPage() {
       return;
     }
 
+    if (referee === playerName) {
+      toastErrorWithSound("You can't join with your friends username!");
+      return;
+    }
+
     try {
       const response = await fetch(API_URL + "api/v1/game/join", {
         method: "POST",
@@ -106,7 +111,7 @@ export default function JoinPage() {
               className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded w-[50%]"
               onClick={joinGame}
             >
-              Battle him!
+              Accept Challenge!
             </button>
             {
               // don't know if this is needed, but keeping it commented for now
