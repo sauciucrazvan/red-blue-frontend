@@ -95,8 +95,11 @@ const Game = () => {
         ws.onmessage = (event) => {
           try {
             const wsData = JSON.parse(event.data);
-            if (wsData.game_state === "finished")
-              navigate(`/summary/${id}?r=finish`);
+            if (wsData.game_state === "finished") {
+              if (wsData.message.includes("abandoned"))
+                navigate(`/summary/${id}?r=abandon`);
+              else navigate(`/summary/${id}?r=finish`);
+            }
             if (wsData.next_round) {
               setData((prev: any) => ({
                 ...prev,
