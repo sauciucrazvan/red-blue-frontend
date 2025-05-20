@@ -40,12 +40,15 @@ export default function GameTimer({
   }, [created_at, onHold]);
 
   return (
-    <div className="flex justify-center">
-      <div className="relative w-40 h-40 sm:w-40 sm:h-40">
-        <svg className="absolute top-0 left-0 w-full h-full">
+    <div className="flex justify-center w-full h-full">
+      <div className="relative w-[5.5rem] h-[5.5rem] sm:w-40 sm:h-40">
+        <svg
+          className="absolute top-0 left-0 w-full h-full"
+          viewBox="0 0 160 160"
+        >
           <circle
-            cx="50%"
-            cy="50%"
+            cx="80"
+            cy="80"
             r="70"
             stroke={getInterpolatedColor(timer)}
             strokeWidth="15"
@@ -55,7 +58,7 @@ export default function GameTimer({
             className="transition-all duration-1000 ease-linear"
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center text-3xl sm:text-5xl font-bold text-white">
+        <div className="absolute inset-0 flex items-center justify-center text-lg sm:text-5xl font-bold text-white">
           {timer}
         </div>
       </div>
