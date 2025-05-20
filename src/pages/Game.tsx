@@ -44,6 +44,7 @@ const Game = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [showSurrenderPopup, setShowSurrenderPopup] = useState(false);
   const [timer, setTimer] = useState<number>(60);
+  const [infoMsg, setInfoMsg] = useState<string | null>(null);
 
   const handleChoice = (color: string) => {
     if (selectedColor) {
@@ -95,6 +96,7 @@ const Game = () => {
         ws.onmessage = (event) => {
           try {
             const wsData = JSON.parse(event.data);
+            setInfoMsg(wsData.message);
             if (wsData.game_state === "finished") {
               if (wsData.message.includes("abandoned"))
                 navigate(`/summary/${id}?r=abandon`);
@@ -294,6 +296,9 @@ const Game = () => {
         </div>
 
         <div className="mt-6 italic text-white/90 text-center">
+          <div className="text-white font-bold not-italic font-sans">
+            {infoMsg}
+          </div>
           {selectedColor
             ? `You selected: ${selectedColor}`
             : "Choose wisely..."}
