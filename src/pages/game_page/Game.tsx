@@ -103,13 +103,10 @@ export default function Game() {
             }
 
             if (wsData.game_state === "finished") {
-              if (wsData.message?.includes("abandoned")) {
-                setInfoMsg("Your opponent has abandoned the game.");
-                navigate(`/summary/${id}?r=abandon`);
-              } else {
-                setInfoMsg("The game has ended.");
-                navigate(`/summary/${id}?r=finish`);
-              }
+              navigate(
+                `/game/summary/${id}?r=${wsData.message.includes("abandoned") ? "abandon" : "finish"
+                }`
+              );
             }
 
             if (wsData.next_round) {
