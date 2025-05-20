@@ -1,9 +1,4 @@
-<<<<<<< HEAD:src/pages/Game.tsx
-import { useEffect, useState, useRef } from "react";
-=======
-// Game.tsx complet refactorizat cu timer centrat
 import { useEffect, useState, useRef, useMemo } from "react";
->>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import soundFile from "../../assets/pop-up-notify-smooth-modern-332448.mp3";
@@ -30,22 +25,14 @@ export default function Game() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
-<<<<<<< HEAD:src/pages/Game.tsx
-  const [playerName, setPlayerName] = useState<string | null>(null);
-=======
-  const [chatVisible, setChatVisible] = useState(false);
->>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
   const [showSummary, setShowSummary] = useState(false);
   const [showSurrenderPopup, setShowSurrenderPopup] = useState(false);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
-<<<<<<< HEAD:src/pages/Game.tsx
   const [chatPromptVisible, setChatPromptVisible] = useState(false);
   const [chatIntent, setChatIntentState] = useState<{ [round: number]: { self: boolean; opponent: boolean } }>({});
   const [chatOpen, setChatOpen] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
-=======
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
->>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
 
   const playerName = useMemo(() => {
     return localStorage.getItem("role") === "player1"
@@ -102,7 +89,6 @@ export default function Game() {
     let ws: WebSocket;
 
     const initializeWebSocket = () => {
-<<<<<<< HEAD:src/pages/Game.tsx
       try {
         ws = new WebSocket(`${WS_URL}ws/game/${id}`);
         wsRef.current = ws;
@@ -164,37 +150,6 @@ export default function Game() {
         console.error("WebSocket initialization error:", err);
         setInfoMsg("WebSocket connection failed to initialize.");
       }
-=======
-      ws = new WebSocket(`${WS_URL}ws/game/${id}`);
-
-      ws.onmessage = (event) => {
-        try {
-          const wsData = JSON.parse(event.data);
-          setInfoMsg(wsData.message);
-
-          if (wsData.game_state === "finished") {
-            navigate(
-              `/game/summary/${id}?r=${
-                wsData.message.includes("abandoned") ? "abandon" : "finish"
-              }`
-            );
-          }
-
-          if (wsData.next_round) {
-            setData((prev: any) => ({
-              ...prev,
-              current_round: wsData.next_round,
-              player1_score: wsData.player1_score,
-              player2_score: wsData.player2_score,
-              rounds: wsData.rounds,
-            }));
-            setSelectedColor(null);
-          }
-        } catch (error) {
-          console.error("WebSocket message parsing error:", error);
-        }
-      };
->>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
     };
 
     initializeWebSocket();
@@ -330,25 +285,6 @@ export default function Game() {
           Round {data.current_round}
         </h2>
 
-<<<<<<< HEAD:src/pages/Game.tsx
-        <div className="flex justify-between items-center gap-12 w-full max-w-5xl px-10">
-          <div className="flex-1 flex justify-end">
-            <div className="bg-white/10 backdrop-blur-md p-4 px-6 rounded-2xl text-center shadow-md w-full max-w-xs">
-              <div className="text-white text-lg font-semibold mb-1">
-                {data.player1_name}
-              </div>
-              <div
-                className={`text-3xl font-bold ${data.player1_score > 0 ? "text-green-400" : "text-red-400"
-                  }`}
-              >
-                {data.player1_score} pts
-              </div>
-              <div className="italic text-sm text-white/60">
-                {data.player1_score > 0 ? "Winning" : "Losing"}
-              </div>
-            </div>
-          </div>
-=======
         {/* Player Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6 w-full px-4 sm:px-10">
           {playerName === data.player1_name ? (
@@ -356,37 +292,17 @@ export default function Game() {
           ) : (
             <PlayerCard player={data.player2_name} score={data.player2_score} />
           )}
->>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
 
           <GameTimer
             created_at={data?.rounds?.[data?.current_round - 1]?.created_at}
             onHold={data.game_state === "waiting" || !data.current_round}
           />
 
-<<<<<<< HEAD:src/pages/Game.tsx
-          <div className="flex-1 flex justify-start">
-            <div className="bg-white/10 backdrop-blur-md p-4 px-6 rounded-2xl text-center shadow-md w-full max-w-xs">
-              <div className="text-white text-lg font-semibold mb-1">
-                {data.player2_name}
-              </div>
-              <div
-                className={`text-3xl font-bold ${data.player2_score > 0 ? "text-green-400" : "text-red-400"
-                  }`}
-              >
-                {data.player2_score} pts
-              </div>
-              <div className="italic text-sm text-white/60">
-                {data.player2_score > 0 ? "Winning" : "Losing"}
-              </div>
-            </div>
-          </div>
-=======
           {playerName === data.player1_name ? (
             <PlayerCard player={data.player2_name} score={data.player2_score} />
           ) : (
             <PlayerCard player={data.player1_name} score={data.player1_score} />
           )}
->>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
         </div>
 
         {/* Color Selection */}
@@ -395,12 +311,6 @@ export default function Game() {
             <div
               key={color}
               onClick={() => handleChoice(color)}
-<<<<<<< HEAD:src/pages/Game.tsx
-              className={`relative transition-all duration-300 rounded-xl text-center text-4xl font-bold py-16 cursor-pointer border-4 ${selectedColor === color
-                ? `bg-${color.toLowerCase()}-600 border-white`
-                : `bg-${color.toLowerCase()}-500 border-transparent hover:scale-105`
-                }`}
-=======
               className={`relative transition-all duration-300 rounded-xl text-center text-2xl sm:text-4xl font-bold py-12 sm:py-16 cursor-pointer border-4 
               ${
                 selectedColor === color
@@ -408,7 +318,6 @@ export default function Game() {
                   : `bg-${color.toLowerCase()}-500 border-transparent hover:scale-105`
               }
             `}
->>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
             >
               {color}
               {selectedColor === color && (
@@ -472,7 +381,7 @@ export default function Game() {
         </div>
       )}
 
-<<<<<<< HEAD:src/pages/Game.tsx
+      {/* Chat Prompt */}
       {chatPromptVisible && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="bg-black bg-opacity-20 backdrop-blur-md rounded p-6 text-white shadow-lg w-full max-w-sm">
@@ -497,20 +406,11 @@ export default function Game() {
                 Yes, I do
               </button>
             </div>
-=======
-      {/* Chat Popup */}
-      <AnimatePresence>
-        {chatVisible && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-            <ChatPopup
-              currentRound={data.current_round}
-              onClose={() => setChatVisible(false)}
-            />
->>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
           </div>
         </div>
       )}
 
+      {/* Chat Popup */}
       <AnimatePresence>
   {chatOpen && (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
