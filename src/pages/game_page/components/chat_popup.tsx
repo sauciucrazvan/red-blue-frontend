@@ -1,23 +1,46 @@
+
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 interface ChatPopupProps {
   currentRound: number;
   onClose: () => void;
+  socket: WebSocket;
 }
 
-const ChatPopup = ({ currentRound, onClose }: ChatPopupProps) => {
+const ChatPopup = ({ currentRound, onClose, socket }: ChatPopupProps) => {
   const [chatMessages, setChatMessages] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Scroll la ultimul mesaj
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
+  // Primește mesaje de la WebSocket
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "chat-message") {
+        setChatMessages((prev) => [...prev, `${data.sender}: ${data.message}`]);
+      }
+    };
+
+    socket.addEventListener("message", handleMessage);
+    return () => {
+      socket.removeEventListener("message", handleMessage);
+    };
+  }, [socket]);
+
   const sendMessage = () => {
     if (message.trim()) {
-      setChatMessages((prevMessages) => [...prevMessages, message]);
+      // Afișează local
+      setChatMessages((prev) => [...prev, `You: ${message}`]);
+
+      // Trimite prin WebSocket
+      socket.send(JSON.stringify({ type: "chat-message", sender: message }));
+
       setMessage("");
     }
   };
@@ -30,21 +53,14 @@ const ChatPopup = ({ currentRound, onClose }: ChatPopupProps) => {
         scale: 1,
         y: 0,
         rotateX: 0,
-        transition: {
-          duration: 0.5,
-          ease: "easeOut",
-          delay: 0.1,
-        },
+        transition: { duration: 0.5, ease: "easeOut", delay: 0.1 },
       }}
       exit={{
         opacity: 0,
         scale: 0.8,
         y: 50,
         rotateX: 30,
-        transition: {
-          duration: 0.5,
-          ease: "easeInOut",
-        },
+        transition: { duration: 0.5, ease: "easeInOut" },
       }}
       className="bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded-lg shadow-lg w-full max-w-md"
     >
