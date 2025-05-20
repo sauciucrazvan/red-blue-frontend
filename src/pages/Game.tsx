@@ -1,5 +1,5 @@
 // Game.tsx complet refactorizat cu timer centrat
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ErrorPage from "./ErrorPage";
 import LoadingPage from "./Loading";
@@ -32,29 +32,26 @@ function getInterpolatedColor(timer: number): string {
 }
 
 export default function Game() {
-  const prevRoundRef = useRef<number | null>(null);
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const prevRoundRef = useRef<number | null>(null);
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
-  const [playerName, setPlayerName] = useState<string | null>(null);
   const [chatVisible, setChatVisible] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [showSurrenderPopup, setShowSurrenderPopup] = useState(false);
-  const [timer, setTimer] = useState<number>(60);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [timer, setTimer] = useState<number>(60);
 
-  const handleChoice = (color: string) => {
-    if (selectedColor) {
-      toastErrorWithSound("Wait for your opponent!");
-      return;
-    }
-    setSelectedColor(color);
-    chooseColor(color);
-  };
+  const playerName = useMemo(() => {
+    return localStorage.getItem("role") === "player1"
+      ? data?.player1_name
+      : data?.player2_name;
+  }, [data]);
 
   useEffect(() => {
     const fetchGame = async () => {
@@ -63,6 +60,7 @@ export default function Game() {
         setError(null);
         const token = localStorage.getItem("token");
         if (!token) throw new Error("Invalid token.");
+
         const response = await fetch(`${API_URL}api/v1/game/${id}`, {
           method: "GET",
           headers: {
@@ -70,59 +68,62 @@ export default function Game() {
             Authorization: `Bearer ${token}`,
           },
         });
+
         if (!response.ok) {
-          if (response.status === 404) navigate("/404");
-          throw new Error(response.statusText);
+          throw new Error(
+            response.status === 404 ? "Game not found!" : response.statusText
+          );
         }
-        const data = await response.json();
-        setData(data);
-        setPlayerName(
-          localStorage.getItem("role") === "player1"
-            ? data.player1_name
-            : data.player2_name
-        );
-        setLoading(false);
+
+        const gameData = await response.json();
+        setData(gameData);
       } catch (err: any) {
         setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchGame();
-  }, [id, navigate]);
+  }, [id]);
 
   useEffect(() => {
     let ws: WebSocket;
+
     const initializeWebSocket = () => {
-      try {
-        ws = new WebSocket(`${WS_URL}ws/game/${id}`);
-        ws.onmessage = (event) => {
-          try {
-            const wsData = JSON.parse(event.data);
-            setInfoMsg(wsData.message);
-            if (wsData.game_state === "finished") {
-              if (wsData.message.includes("abandoned"))
-                navigate(`/game/summary/${id}?r=abandon`);
-              else navigate(`/game/summary/${id}?r=finish`);
-            }
-            if (wsData.next_round) {
-              setData((prev: any) => ({
-                ...prev,
-                current_round: wsData.next_round,
-                player1_score: wsData.player1_score,
-                player2_score: wsData.player2_score,
-                rounds: wsData.rounds,
-              }));
-              setSelectedColor(null);
-            }
-          } catch (err) {
-            console.error("Failed to parse WebSocket message:", err);
+      ws = new WebSocket(`${WS_URL}ws/game/${id}`);
+
+      ws.onmessage = (event) => {
+        try {
+          const wsData = JSON.parse(event.data);
+          setInfoMsg(wsData.message);
+
+          if (wsData.game_state === "finished") {
+            navigate(
+              `/game/summary/${id}?r=${
+                wsData.message.includes("abandoned") ? "abandon" : "finish"
+              }`
+            );
           }
-        };
-      } catch (err) {
-        console.error("WebSocket initialization error:", err);
-        setError("Failed to initialize WebSocket");
-      }
+
+          if (wsData.next_round) {
+            setData((prev: any) => ({
+              ...prev,
+              current_round: wsData.next_round,
+              player1_score: wsData.player1_score,
+              player2_score: wsData.player2_score,
+              rounds: wsData.rounds,
+            }));
+            setSelectedColor(null);
+          }
+        } catch (error) {
+          console.error("WebSocket message parsing error:", error);
+        }
+      };
     };
+
     initializeWebSocket();
+    return () => ws?.close();
   }, [id, navigate]);
 
   useEffect(() => {
@@ -155,17 +156,29 @@ export default function Game() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (data?.game_state === "waiting") return;
+      if (data?.game_state === "waiting" || data?.game_state === "pause")
+        return;
+
       const round = data?.rounds?.[data?.current_round - 1];
       if (!round?.created_at) return;
-      const createdTime = new Date(round.created_at).getTime();
-      const now = Date.now();
-      const elapsed = Math.floor((now - createdTime) / 1000);
-      const remaining = 60 - elapsed;
-      setTimer(remaining > 0 ? remaining : 0);
+
+      const elapsed = Math.floor(
+        (Date.now() - new Date(round.created_at).getTime()) / 1000
+      );
+      setTimer(Math.max(60 - elapsed, 0));
     }, 1000);
+
     return () => clearInterval(interval);
   }, [data]);
+
+  const handleChoice = (color: string) => {
+    if (selectedColor) {
+      toastErrorWithSound("Wait for your opponent!");
+      return;
+    }
+    setSelectedColor(color);
+    chooseColor(color);
+  };
 
   const chooseColor = async (choice: string) => {
     if (data == null) return;
