@@ -6,6 +6,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
 const Game = lazy(() => import("./pages/Game.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const WaitingLobby = lazy(() => import("./pages/WaitingLobby.tsx"));
+const JoinPage = lazy(() => import("./pages/JoinPage.tsx"));
 const FinishPage = lazy(() => import("./pages/FinishPage.tsx"));
 
 function ToastCleanup() {
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/game/:id" element={<Game />} />
         <Route path="/game/lobby/:id" element={<WaitingLobby />} />
         <Route path="/game/summary/:id" element={<FinishPage />} />
+        <Route path="/game/join/:game_code" element={<JoinPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

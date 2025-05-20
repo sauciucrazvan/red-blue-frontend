@@ -123,7 +123,7 @@ export default function Game() {
     };
 
     initializeWebSocket();
-    return () => ws?.close();
+    //return () => ws?.close();
   }, [id, navigate]);
 
   useEffect(() => {
