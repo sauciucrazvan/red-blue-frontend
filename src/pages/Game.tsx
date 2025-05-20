@@ -142,13 +142,15 @@ export default function Game() {
   useEffect(() => {
     if (!data) return;
 
+    setLoading(true);
+
     if (
       !data.player1_name ||
       !data.player2_name ||
       data.game_state === "waiting"
     ) {
       navigate(`/game/lobby/${id}`);
-    }
+    } else setLoading(false);
   }, [data, navigate]);
 
   useEffect(() => {
@@ -183,7 +185,6 @@ export default function Game() {
           }),
         }
       );
-      console.log(response);
 
       if (!response.ok) {
         const errorDetail = await response.json();
