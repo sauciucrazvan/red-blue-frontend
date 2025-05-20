@@ -6,7 +6,9 @@ import { toastErrorWithSound } from "./components/toastWithSound";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [playerName, setPlayerName] = useState("");
+  const [playerName, setPlayerName] = useState(
+    localStorage.getItem("player_name") ?? ""
+  );
   const [joinGameCode, setJoinGameCode] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
@@ -59,6 +61,7 @@ export default function Dashboard() {
       }
 
       const data = await response.json();
+      localStorage.setItem("player_name", playerName);
       localStorage.setItem("role", data.role);
       localStorage.setItem("token", data.token);
       navigate(`/game/${data.game_id}`);
@@ -88,13 +91,19 @@ export default function Dashboard() {
           className="w-full max-w-md mt-6 flex flex-col items-center gap-4"
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 70, damping: 10, delay: 0.3 }}
+          transition={{
+            type: "spring",
+            stiffness: 70,
+            damping: 10,
+            delay: 0.3,
+          }}
         >
           <input
             type="text"
             className="w-full bg-gray-100 border border-gray-400 rounded p-2 text-center"
             placeholder="Enter your name"
             value={playerName}
+            defaultValue={playerName || ""}
             onChange={(e) => setPlayerName(e.target.value)}
           />
 
@@ -180,10 +189,13 @@ export default function Dashboard() {
                 exit={{ y: 50, opacity: 0 }}
                 transition={{ duration: 0.4 }}
               >
-                <h2 className="text-2xl font-bold mb-4 text-center">How to Play</h2>
+                <h2 className="text-2xl font-bold mb-4 text-center">
+                  How to Play
+                </h2>
                 <p className="mb-2">
-                  Once a game starts, the two users will play a total of <strong>10 rounds</strong>.
-                  In each round, they choose between two colors:{" "}
+                  Once a game starts, the two users will play a total of{" "}
+                  <strong>10 rounds</strong>. In each round, they choose between
+                  two colors:{" "}
                   <span className="text-red-600 font-bold">RED</span> or{" "}
                   <span className="text-blue-600 font-bold">BLUE</span>.
                 </p>
@@ -224,16 +236,18 @@ export default function Dashboard() {
                   </tbody>
                 </table>
                 <p className="mb-2">
-                  During the game, players can see their score for each past round
-                  (e.g. +3, -6, etc.) as well as their total score.
+                  During the game, players can see their score for each past
+                  round (e.g. +3, -6, etc.) as well as their total score.
                 </p>
                 <p className="mb-2">
-                  <strong>Rounds 9 and 10</strong> have <strong>doubled score</strong> values.
+                  <strong>Rounds 9 and 10</strong> have{" "}
+                  <strong>doubled score</strong> values.
                 </p>
                 <p>
                   <strong>WINNING CONDITION:</strong> A player with a positive
                   score at the end is considered a{" "}
-                  <span className="text-green-600 font-bold">winner</span>. A player with a negative or null score has{" "}
+                  <span className="text-green-600 font-bold">winner</span>. A
+                  player with a negative or null score has{" "}
                   <span className="text-red-600 font-bold">lost</span>.
                 </p>
                 <div className="mt-6 text-center">
