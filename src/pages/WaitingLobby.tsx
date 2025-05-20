@@ -1,48 +1,77 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { WS_URL } from "../config";
+import { API_URL, WS_URL } from "../config";
 import { FaCopy } from "react-icons/fa6";
 import { motion } from "framer-motion";
+import LoadingPage from "./Loading";
+import ErrorPage from "./ErrorPage";
 
-interface WaitingLobbyProps {
-  id: string;
-  game_code: string;
-  created_at: string;
-}
-
-export default function WaitingLobby(props: WaitingLobbyProps) {
+export default function WaitingLobby() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<any>(null);
 
-  const exp_date = new Date(props.created_at);
-  exp_date.setMinutes(exp_date.getMinutes() + 10);
-
-  const exp_hours = exp_date.getHours().toString().padStart(2, "0");
-  const exp_minutes = exp_date.getMinutes().toString().padStart(2, "0");
+  const [expHours, setExpHours] = useState<string>("00");
+  const [expMinutes, setExpMinutes] = useState<string>("00");
 
   useEffect(() => {
-    if (!props.id || !props.game_code) {
-      console.error("Missing id or game_code...");
-      navigate("/404");
-      return;
-    }
+    const fetchGame = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("Invalid token.");
+        const response = await fetch(`${API_URL}api/v1/game/${id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          if (response.status === 404) navigate("/404");
+          throw new Error(response.statusText);
+        }
+        const data = await response.json();
+        setData(data);
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.message);
+      }
+    };
+    fetchGame();
+  }, [id, navigate]);
 
+  useEffect(() => {
+    if (data && data.created_at) {
+      const expDate = new Date(data.created_at);
+      expDate.setMinutes(expDate.getMinutes() + 10);
+
+      setExpHours(expDate.getHours().toString().padStart(2, "0"));
+      setExpMinutes(expDate.getMinutes().toString().padStart(2, "0"));
+    }
+  }, [data]);
+
+  useEffect(() => {
     let ws: WebSocket;
 
     const initializeWebSocket = () => {
       try {
-        ws = new WebSocket(`${WS_URL}ws/game/${props.id}`);
+        ws = new WebSocket(`${WS_URL}ws/game/${id}`);
 
-        ws.onopen = () => {
-          console.log("WebSocket connection established in WaitingLobby");
-        };
+        // ws.onopen = () => {
+        //   console.log("WebSocket connection established in WaitingLobby");
+        // };
 
         ws.onmessage = (event) => {
           try {
             const wsData = JSON.parse(event.data);
             if (wsData.state === "active") {
-              console.log("Player connected, refreshing...");
-              window.location.reload();
+              console.log("Player connected, joining game...");
+              navigate(`/game/${id}`);
             }
           } catch (err) {
             console.error("Failed to parse WebSocket message:", err);
@@ -53,20 +82,20 @@ export default function WaitingLobby(props: WaitingLobbyProps) {
           console.error("WebSocket error:", error);
         };
 
-        ws.onclose = () => {
-          console.log("WebSocket connection closed in WaitingLobby");
-        };
+        // ws.onclose = () => {
+        //   console.log("WebSocket connection closed in WaitingLobby");
+        // };
       } catch (err) {
         console.error("WebSocket initialization error:", err);
       }
     };
 
     initializeWebSocket();
-  }, [props.id]);
+  }, [id]);
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(props.game_code);
+      await navigator.clipboard.writeText(data.code);
       toast.success("Copied to clipboard", {});
     } catch (err) {
       console.error("Failed to copy:", err);
@@ -75,6 +104,10 @@ export default function WaitingLobby(props: WaitingLobbyProps) {
       );
     }
   };
+
+  if (loading) return LoadingPage();
+  if (error) return ErrorPage(error);
+  if (!data) return ErrorPage("Failed to fetch data!");
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 to-blue-700 text-white">
@@ -92,18 +125,31 @@ export default function WaitingLobby(props: WaitingLobbyProps) {
         </p>
         <div
           onClick={copyToClipboard}
-          className="inline-flex items-center gap-1 cursor-pointer text-lg text-white hover:text-white/80 transition"
+          className="inline-flex items-center gap-1 cursor-pointer text-lg text-white font-bold hover:text-white/80 transition"
           title="Click to copy"
         >
-          {props.game_code} <FaCopy />
+          {data.code} <FaCopy />
         </div>
-        <p className="text-sm text-white italic">
-          The game will (hopefully) start once your opponent joins.
-          <span className="text-xs text-white italic">
-            Waiting for your opponent until {exp_hours}:{exp_minutes}, therefore
-            the lobby will expire.
-          </span>
-        </p>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="text-center">
+            <span className="text-md text-white non-italic">
+              Waiting for your opponent until{" "}
+              <b>
+                {expHours}:{expMinutes}
+              </b>
+              , therefore the lobby will expire.
+            </span>
+            <p className="text-xs text-white italic">
+              The game will (hopefully) start once your opponent joins.
+            </p>
+          </div>
+          <a
+            href="/"
+            className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded shadow-md"
+          >
+            Cancel & Return
+          </a>
+        </div>
       </motion.div>
     </div>
   );

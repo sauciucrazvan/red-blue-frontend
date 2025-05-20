@@ -3,7 +3,6 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ErrorPage from "./ErrorPage";
 import LoadingPage from "./Loading";
-import WaitingLobby from "./WaitingLobby";
 import ChatPopup from "./components/ChatPopup";
 import GameSummary from "./components/GameSummary";
 import { toastErrorWithSound } from "./components/toastWithSound";
@@ -11,6 +10,7 @@ import { AnimatePresence } from "framer-motion";
 import { API_URL, WS_URL } from "../config";
 import soundFile from "../assets/pop-up-notify-smooth-modern-332448.mp3";
 import { FiCheckCircle } from "react-icons/fi";
+import toast from "react-hot-toast";
 
 const roundStartSound = new Audio(soundFile);
 
@@ -31,10 +31,11 @@ function getInterpolatedColor(timer: number): string {
   return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
 }
 
-const Game = () => {
+export default function Game() {
   const prevRoundRef = useRef<number | null>(null);
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -99,8 +100,8 @@ const Game = () => {
             setInfoMsg(wsData.message);
             if (wsData.game_state === "finished") {
               if (wsData.message.includes("abandoned"))
-                navigate(`/summary/${id}?r=abandon`);
-              else navigate(`/summary/${id}?r=finish`);
+                navigate(`/game/summary/${id}?r=abandon`);
+              else navigate(`/game/summary/${id}?r=finish`);
             }
             if (wsData.next_round) {
               setData((prev: any) => ({
@@ -139,6 +140,18 @@ const Game = () => {
   }, [data?.current_round]);
 
   useEffect(() => {
+    if (!data) return;
+
+    if (
+      !data.player1_name ||
+      !data.player2_name ||
+      data.game_state === "waiting"
+    ) {
+      navigate(`/game/lobby/${id}`);
+    }
+  }, [data, navigate]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       if (data?.game_state === "waiting") return;
       const round = data?.rounds?.[data?.current_round - 1];
@@ -156,7 +169,6 @@ const Game = () => {
     if (data == null) return;
 
     try {
-      //console.log("Round: " + data.current_round);
       const response = await fetch(
         `${API_URL}api/v1/game/${id}/round/${data?.current_round || 1}/choice`,
         {
@@ -180,7 +192,7 @@ const Game = () => {
       await response.json();
     } catch (error: any) {
       console.error("Error choosing color:", error.message);
-      setError(`Failed to submit choice: ${error.message}`);
+      toast.error(`Failed to submit choice: ${error.message}`);
     }
   };
 
@@ -199,21 +211,13 @@ const Game = () => {
       console.error("Error abandoning the game:", error.message);
       setError(`Failed to submit choice: ${error.message}`);
     } finally {
-      navigate(`/summary/${id}?r=abandon`);
+      navigate(`/game/summary/${id}?r=abandon`);
     }
   };
 
   if (loading) return LoadingPage();
   if (error) return ErrorPage(error);
   if (!data) return ErrorPage("Failed to fetch data!");
-  if (!data.player1_name || !data.player2_name)
-    return (
-      <WaitingLobby
-        id={id!}
-        game_code={data.code}
-        created_at={data.created_at}
-      />
-    );
 
   return (
     <div className="flex flex-col items-center justify-center h-screen w-screen bg-gradient-to-br from-red-700 to-blue-700 text-white overflow-y-auto px-4 py-4">
@@ -379,6 +383,4 @@ const Game = () => {
       </AnimatePresence>
     </div>
   );
-};
-
-export default Game;
+}
