@@ -103,7 +103,6 @@ export default function Dashboard() {
             className="w-full bg-gray-100 border border-gray-400 rounded p-2 text-center"
             placeholder="Enter your name"
             value={playerName}
-            defaultValue={playerName || ""}
             onChange={(e) => setPlayerName(e.target.value)}
           />
 

@@ -153,7 +153,10 @@ const Game = () => {
   }, [data]);
 
   const chooseColor = async (choice: string) => {
+    if (data == null) return;
+
     try {
+      //console.log("Round: " + data.current_round);
       const response = await fetch(
         `${API_URL}api/v1/game/${id}/round/${data?.current_round || 1}/choice`,
         {
@@ -168,6 +171,8 @@ const Game = () => {
           }),
         }
       );
+      console.log(response);
+
       if (!response.ok) {
         const errorDetail = await response.json();
         throw new Error(errorDetail.detail || response.statusText);

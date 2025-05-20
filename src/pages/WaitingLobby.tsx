@@ -99,9 +99,10 @@ export default function WaitingLobby(props: WaitingLobbyProps) {
         </div>
         <p className="text-sm text-white italic">
           The game will (hopefully) start once your opponent joins.
-          <p className="text-xs text-white italic">
-            Waiting for your opponent until {exp_hours}:{exp_minutes}, therefore the lobby will expire.
-          </p>
+          <span className="text-xs text-white italic">
+            Waiting for your opponent until {exp_hours}:{exp_minutes}, therefore
+            the lobby will expire.
+          </span>
         </p>
       </motion.div>
     </div>
