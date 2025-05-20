@@ -1,35 +1,21 @@
 // Game.tsx complet refactorizat cu timer centrat
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import ErrorPage from "./ErrorPage";
-import LoadingPage from "./Loading";
-import ChatPopup from "./components/ChatPopup";
-import GameSummary from "./components/GameSummary";
-import { toastErrorWithSound } from "./components/toastWithSound";
 import { AnimatePresence } from "framer-motion";
-import { API_URL, WS_URL } from "../config";
-import soundFile from "../assets/pop-up-notify-smooth-modern-332448.mp3";
+import soundFile from "../../assets/pop-up-notify-smooth-modern-332448.mp3";
 import { FiCheckCircle } from "react-icons/fi";
 import toast from "react-hot-toast";
+import { API_URL, WS_URL } from "../../config";
+import ChatPopup from "./components/chat_popup";
+import GameSummary from "../../components/GameSummary";
+import { toastErrorWithSound } from "../../components/toastWithSound";
+import ErrorPage from "../system_pages/ErrorPage";
+import LoadingPage from "../system_pages/Loading";
+import GameTimer from "./components/game_timer";
+import PlayerCard from "./components/player_card";
+import AnimatedDots from "../../components/AnimatedDots";
 
 const roundStartSound = new Audio(soundFile);
-
-function getInterpolatedColor(timer: number): string {
-  const t = timer / 60;
-  let r, g, b;
-  if (t > 0.5) {
-    const ratio = (t - 0.5) * 2;
-    r = 59 + (139 - 59) * (1 - ratio);
-    g = 130 + (92 - 130) * (1 - ratio);
-    b = 246;
-  } else {
-    const ratio = t * 2;
-    r = 139 + (239 - 139) * (1 - ratio);
-    g = 92 + (68 - 92) * (1 - ratio);
-    b = 246 + (68 - 246) * (1 - ratio);
-  }
-  return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
-}
 
 export default function Game() {
   const { id } = useParams();
@@ -45,7 +31,6 @@ export default function Game() {
   const [showSurrenderPopup, setShowSurrenderPopup] = useState(false);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [timer, setTimer] = useState<number>(60);
 
   const playerName = useMemo(() => {
     return localStorage.getItem("role") === "player1"
@@ -123,7 +108,6 @@ export default function Game() {
     };
 
     initializeWebSocket();
-    //return () => ws?.close();
   }, [id, navigate]);
 
   useEffect(() => {
@@ -153,23 +137,6 @@ export default function Game() {
       navigate(`/game/lobby/${id}`);
     } else setLoading(false);
   }, [data, navigate]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (data?.game_state === "waiting" || data?.game_state === "pause")
-        return;
-
-      const round = data?.rounds?.[data?.current_round - 1];
-      if (!round?.created_at) return;
-
-      const elapsed = Math.floor(
-        (Date.now() - new Date(round.created_at).getTime()) / 1000
-      );
-      setTimer(Math.max(60 - elapsed, 0));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [data]);
 
   const handleChoice = (color: string) => {
     if (selectedColor) {
@@ -247,65 +214,22 @@ export default function Game() {
 
         {/* Player Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6 w-full px-4 sm:px-10">
-          <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl text-center shadow-md w-full md:max-w-xs">
-            <div
-              className={`text-lg font-semibold ${
-                playerName === data.player1_name
-                  ? "text-yellow-400"
-                  : "text-white"
-              }`}
-            >
-              {data.player1_name}
-            </div>
-            <div
-              className={`text-2xl sm:text-3xl font-bold ${
-                data.player1_score > 0 ? "text-green-400" : "text-red-400"
-              }`}
-            >
-              {data.player1_score} pts
-            </div>
-          </div>
+          {playerName === data.player1_name ? (
+            <PlayerCard player={data.player1_name} score={data.player1_score} />
+          ) : (
+            <PlayerCard player={data.player2_name} score={data.player2_score} />
+          )}
 
-          {/* Timer */}
-          <div className="flex justify-center">
-            <div className="relative w-40 h-40 sm:w-40 sm:h-40">
-              <svg className="absolute top-0 left-0 w-full h-full">
-                <circle
-                  cx="50%"
-                  cy="50%"
-                  r="70"
-                  stroke={getInterpolatedColor(timer)}
-                  strokeWidth="15"
-                  fill="transparent"
-                  strokeDasharray={2 * Math.PI * 70}
-                  strokeDashoffset={2 * Math.PI * 70 * ((60 - timer) / 60)}
-                  className="transition-all duration-1000 ease-linear"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center text-3xl sm:text-5xl font-bold text-white">
-                {timer}
-              </div>
-            </div>
-          </div>
+          <GameTimer
+            created_at={data?.rounds?.[data?.current_round - 1]?.created_at}
+            onHold={data.game_state === "waiting" || !data.current_round}
+          />
 
-          <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl text-center shadow-md w-full md:max-w-xs">
-            <div
-              className={`text-lg font-semibold ${
-                playerName === data.player2_name
-                  ? "text-yellow-400"
-                  : "text-white"
-              }`}
-            >
-              {data.player2_name}
-            </div>
-            <div
-              className={`text-2xl sm:text-3xl font-bold ${
-                data.player2_score > 0 ? "text-green-400" : "text-red-400"
-              }`}
-            >
-              {data.player2_score} pts
-            </div>
-          </div>
+          {playerName === data.player1_name ? (
+            <PlayerCard player={data.player2_name} score={data.player2_score} />
+          ) : (
+            <PlayerCard player={data.player1_name} score={data.player1_score} />
+          )}
         </div>
 
         {/* Color Selection */}
@@ -333,13 +257,9 @@ export default function Game() {
         {/* Info & System Messages */}
         <div className="mt-6 text-center text-white/90">
           <div className="text-white font-bold">{infoMsg}</div>
-          <div className="text-lg">
-            {selectedColor
-              ? `You selected: ${selectedColor}`
-              : "Choose wisely..."}
-          </div>
-          <div className="mt-1 text-sm">
-            {selectedColor ? "Waiting for opponent..." : "Round in progress"}
+          <div className="mt-1 text-md">
+            {selectedColor ? "Waiting for opponent" : "Round in progress"}
+            <AnimatedDots />
           </div>
         </div>
 

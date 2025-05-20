@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { API_URL, WS_URL } from "../config";
+import { API_URL, WS_URL } from "../../config";
 import { FaCopy } from "react-icons/fa6";
 import { motion } from "framer-motion";
-import LoadingPage from "./Loading";
-import ErrorPage from "./ErrorPage";
+import LoadingPage from "../system_pages/Loading";
+import ErrorPage from "../system_pages/ErrorPage";
+import AnimatedDots from "../../components/AnimatedDots";
 
 export default function WaitingLobby() {
   const navigate = useNavigate();
@@ -16,7 +17,6 @@ export default function WaitingLobby() {
 
   const [expHours, setExpHours] = useState<string>("00");
   const [expMinutes, setExpMinutes] = useState<string>("00");
-  const [dots, setDots] = useState(0);
 
   useEffect(() => {
     const fetchGame = async () => {
@@ -106,13 +106,6 @@ export default function WaitingLobby() {
     }
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDots((prev) => (prev + 1) % 4);
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
-
   if (loading) return LoadingPage();
   if (error) return ErrorPage(error);
   if (!data) return ErrorPage("Failed to fetch data!");
@@ -127,7 +120,7 @@ export default function WaitingLobby() {
       >
         <h2 className="text-2xl font-bold">
           Waiting for the opponent
-          <span>{Array(dots).fill(".").join("")}</span>
+          <AnimatedDots />
         </h2>
         <p className="text-lg">
           You are playing as <b>{localStorage.getItem("player_name")}</b>.

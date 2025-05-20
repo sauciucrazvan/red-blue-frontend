@@ -2,12 +2,14 @@ import { lazy, useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
 
-const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
-const Game = lazy(() => import("./pages/Game.tsx"));
-const NotFound = lazy(() => import("./pages/NotFound.tsx"));
-const WaitingLobby = lazy(() => import("./pages/WaitingLobby.tsx"));
-const JoinPage = lazy(() => import("./pages/JoinPage.tsx"));
-const FinishPage = lazy(() => import("./pages/FinishPage.tsx"));
+const Dashboard = lazy(() => import("./pages/game_flow_pages/Dashboard.tsx"));
+const Game = lazy(() => import("./pages/game_page/Game.tsx"));
+const NotFound = lazy(() => import("./pages/system_pages/NotFound.tsx"));
+const WaitingLobby = lazy(
+  () => import("./pages/game_flow_pages/WaitingLobby.tsx")
+);
+const JoinPage = lazy(() => import("./pages/game_flow_pages/JoinPage.tsx"));
+const FinishPage = lazy(() => import("./pages/game_flow_pages/FinishPage.tsx"));
 
 function ToastCleanup() {
   const location = useLocation();

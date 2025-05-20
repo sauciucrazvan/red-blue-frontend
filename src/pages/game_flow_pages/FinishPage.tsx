@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import LoadingPage from "./Loading";
-import ErrorPage from "./ErrorPage";
-import { API_URL } from "../config";
+import LoadingPage from "../system_pages/Loading";
+import ErrorPage from "../system_pages/ErrorPage";
+import { API_URL } from "../../config";
 import { FaCrown, FaThumbsDown, FaArrowLeftLong } from "react-icons/fa6";
-import GameSummary from "./components/GameSummary";
+import GameSummary from "../../components/GameSummary";
 import { motion } from "framer-motion";
 
 export default function FinishPage() {

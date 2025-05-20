@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { API_URL } from "../config";
-import { toastErrorWithSound } from "./components/toastWithSound";
+import { API_URL } from "../../config";
+import { toastErrorWithSound } from "../../components/toastWithSound";
 
 export default function Dashboard() {
   const navigate = useNavigate();

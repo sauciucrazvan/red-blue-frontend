@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { API_URL } from "../config";
-import { toastErrorWithSound } from "./components/toastWithSound";
+import { API_URL } from "../../config";
+import { toastErrorWithSound } from "../../components/toastWithSound";
 
 export default function JoinPage() {
   const { game_code } = useParams();
