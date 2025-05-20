@@ -193,6 +193,10 @@ export default function Game() {
     } catch (error: any) {
       console.error("Error choosing color:", error.message);
       toast.error(`Failed to submit choice: ${error.message}`);
+
+      if (error.message.includes("finished")) {
+        navigate(`/game/summary/${id}?r=finish`);
+      }
     }
   };
 
@@ -220,33 +224,31 @@ export default function Game() {
   if (!data) return ErrorPage("Failed to fetch data!");
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen w-screen bg-gradient-to-br from-red-700 to-blue-700 text-white overflow-y-auto px-4 py-4">
-      <div className="bg-black/20 backdrop-blur-md border border-black/20 p-8 rounded-3xl shadow-2xl w-full max-w-5xl flex flex-col items-center relative gap-8">
-        <h2 className="text-3xl font-bold text-white">
+    <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gradient-to-br from-red-700 to-blue-700 text-white overflow-y-auto px-4 sm:px-10 py-4">
+      <div className="bg-black/20 backdrop-blur-md border border-black/20 p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-full md:max-w-5xl flex flex-col items-center relative gap-6 sm:gap-8">
+        {/* Round Indicator */}
+        <h2 className="text-2xl sm:text-3xl font-bold text-white text-center">
           Round {data.current_round}
         </h2>
 
-        <div className="flex justify-between items-center gap-12 w-full max-w-5xl px-10">
-          <div className="flex-1 flex justify-end">
-            <div className="bg-white/10 backdrop-blur-md p-4 px-6 rounded-2xl text-center shadow-md w-full max-w-xs">
-              <div className="text-white text-lg font-semibold mb-1">
-                {data.player1_name}
-              </div>
-              <div
-                className={`text-3xl font-bold ${
-                  data.player1_score > 0 ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {data.player1_score} pts
-              </div>
-              <div className="italic text-sm text-white/60">
-                {data.player1_score > 0 ? "Winning" : "Losing"}
-              </div>
+        {/* Player Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6 w-full px-4 sm:px-10">
+          <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl text-center shadow-md w-full md:max-w-xs">
+            <div className="text-white text-lg font-semibold">
+              {data.player1_name}
+            </div>
+            <div
+              className={`text-2xl sm:text-3xl font-bold ${
+                data.player1_score > 0 ? "text-green-400" : "text-red-400"
+              }`}
+            >
+              {data.player1_score} pts
             </div>
           </div>
 
-          <div className="flex-shrink-0">
-            <div className="relative w-40 h-40">
+          {/* Timer */}
+          <div className="flex justify-center">
+            <div className="relative w-40 h-40 sm:w-40 sm:h-40">
               <svg className="absolute top-0 left-0 w-full h-full">
                 <circle
                   cx="50%"
@@ -260,41 +262,39 @@ export default function Game() {
                   className="transition-all duration-1000 ease-linear"
                 />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center text-5xl font-bold text-white">
+              <div className="absolute inset-0 flex items-center justify-center text-3xl sm:text-5xl font-bold text-white">
                 {timer}
               </div>
             </div>
           </div>
 
-          <div className="flex-1 flex justify-start">
-            <div className="bg-white/10 backdrop-blur-md p-4 px-6 rounded-2xl text-center shadow-md w-full max-w-xs">
-              <div className="text-white text-lg font-semibold mb-1">
-                {data.player2_name}
-              </div>
-              <div
-                className={`text-3xl font-bold ${
-                  data.player2_score > 0 ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {data.player2_score} pts
-              </div>
-              <div className="italic text-sm text-white/60">
-                {data.player2_score > 0 ? "Winning" : "Losing"}
-              </div>
+          <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl text-center shadow-md w-full md:max-w-xs">
+            <div className="text-white text-lg font-semibold">
+              {data.player2_name}
+            </div>
+            <div
+              className={`text-2xl sm:text-3xl font-bold ${
+                data.player2_score > 0 ? "text-green-400" : "text-red-400"
+              }`}
+            >
+              {data.player2_score} pts
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-10 w-full max-w-5xl mt-6 px-10 z-10">
+        {/* Color Selection */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-6 px-4 sm:px-10">
           {["RED", "BLUE"].map((color) => (
             <div
               key={color}
               onClick={() => handleChoice(color)}
-              className={`relative transition-all duration-300 rounded-xl text-center text-4xl font-bold py-16 cursor-pointer border-4 ${
+              className={`relative transition-all duration-300 rounded-xl text-center text-2xl sm:text-4xl font-bold py-12 sm:py-16 cursor-pointer border-4 
+              ${
                 selectedColor === color
                   ? `bg-${color.toLowerCase()}-600 border-white`
                   : `bg-${color.toLowerCase()}-500 border-transparent hover:scale-105`
-              }`}
+              }
+            `}
             >
               {color}
               {selectedColor === color && (
@@ -304,20 +304,21 @@ export default function Game() {
           ))}
         </div>
 
-        <div className="mt-6 italic text-white/90 text-center">
-          <div className="text-white font-bold not-italic font-sans">
-            {infoMsg}
+        {/* Info & System Messages */}
+        <div className="mt-6 text-center text-white/90">
+          <div className="text-white font-bold">{infoMsg}</div>
+          <div className="text-lg">
+            {selectedColor
+              ? `You selected: ${selectedColor}`
+              : "Choose wisely..."}
           </div>
-          {selectedColor
-            ? `You selected: ${selectedColor}`
-            : "Choose wisely..."}
-          <div className="mt-1 text-sm text-white/90">
-            System:{" "}
+          <div className="mt-1 text-sm">
             {selectedColor ? "Waiting for opponent..." : "Round in progress"}
           </div>
         </div>
 
-        <div className="flex gap-10">
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-10 mt-6">
           <button
             onClick={() => setShowSummary(true)}
             className="bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-6 rounded-lg transition-all shadow-md"
@@ -333,13 +334,14 @@ export default function Game() {
         </div>
       </div>
 
+      {/* Surrender Popup */}
       {showSurrenderPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="relative bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded shadow-lg w-full max-w-md">
             <h3 className="text-xl font-bold text-center mb-4">
               Are you sure you want to surrender?
             </h3>
-            <div className="flex justify-around gap-6">
+            <div className="flex flex-col sm:flex-row justify-around gap-6">
               <button
                 onClick={() => {
                   abandonGame();
@@ -360,6 +362,7 @@ export default function Game() {
         </div>
       )}
 
+      {/* Chat Popup */}
       <AnimatePresence>
         {chatVisible && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
@@ -371,6 +374,7 @@ export default function Game() {
         )}
       </AnimatePresence>
 
+      {/* Game Summary Popup */}
       <AnimatePresence>
         {showSummary && (
           <GameSummary

@@ -67,6 +67,7 @@ export default function FinishPage() {
     const won = score > 0;
     return (
       <motion.div
+        key={index}
         initial={{ opacity: 0, y: 30, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{
