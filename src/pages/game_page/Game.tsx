@@ -1,61 +1,57 @@
+<<<<<<< HEAD:src/pages/Game.tsx
 import { useEffect, useState, useRef } from "react";
+=======
+// Game.tsx complet refactorizat cu timer centrat
+import { useEffect, useState, useRef, useMemo } from "react";
+>>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
 import { useNavigate, useParams } from "react-router-dom";
-import ErrorPage from "./ErrorPage";
-import LoadingPage from "./Loading";
-import WaitingLobby from "./WaitingLobby";
-import ChatPopup from "./components/ChatPopup";
-import GameSummary from "./components/GameSummary";
-import { toastErrorWithSound } from "./components/toastWithSound";
 import { AnimatePresence } from "framer-motion";
-import { API_URL, WS_URL } from "../config";
-import soundFile from "../assets/pop-up-notify-smooth-modern-332448.mp3";
+import soundFile from "../../assets/pop-up-notify-smooth-modern-332448.mp3";
 import { FiCheckCircle } from "react-icons/fi";
+import toast from "react-hot-toast";
+import { API_URL, WS_URL } from "../../config";
+import ChatPopup from "./components/chat_popup";
+import GameSummary from "../../components/GameSummary";
+import { toastErrorWithSound } from "../../components/toastWithSound";
+import ErrorPage from "../system_pages/ErrorPage";
+import LoadingPage from "../system_pages/Loading";
+import GameTimer from "./components/game_timer";
+import PlayerCard from "./components/player_card";
+import AnimatedDots from "../../components/AnimatedDots";
 
 const roundStartSound = new Audio(soundFile);
 
-function getInterpolatedColor(timer: number): string {
-  const t = timer / 60;
-  let r, g, b;
-  if (t > 0.5) {
-    const ratio = (t - 0.5) * 2;
-    r = 59 + (139 - 59) * (1 - ratio);
-    g = 130 + (92 - 130) * (1 - ratio);
-    b = 246;
-  } else {
-    const ratio = t * 2;
-    r = 139 + (239 - 139) * (1 - ratio);
-    g = 92 + (68 - 92) * (1 - ratio);
-    b = 246 + (68 - 246) * (1 - ratio);
-  }
-  return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
-}
-
-const Game = () => {
-  const prevRoundRef = useRef<number | null>(null);
+export default function Game() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+
+  const prevRoundRef = useRef<number | null>(null);
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
+<<<<<<< HEAD:src/pages/Game.tsx
   const [playerName, setPlayerName] = useState<string | null>(null);
+=======
+  const [chatVisible, setChatVisible] = useState(false);
+>>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
   const [showSummary, setShowSummary] = useState(false);
   const [showSurrenderPopup, setShowSurrenderPopup] = useState(false);
-  const [timer, setTimer] = useState<number>(60);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
+<<<<<<< HEAD:src/pages/Game.tsx
   const [chatPromptVisible, setChatPromptVisible] = useState(false);
   const [chatIntent, setChatIntentState] = useState<{ [round: number]: { self: boolean; opponent: boolean } }>({});
   const [chatOpen, setChatOpen] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
+=======
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+>>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
 
-  const handleChoice = (color: string) => {
-    if (selectedColor) {
-      toastErrorWithSound("Wait for your opponent!");
-      return;
-    }
-    setSelectedColor(color);
-    chooseColor(color);
-  };
+  const playerName = useMemo(() => {
+    return localStorage.getItem("role") === "player1"
+      ? data?.player1_name
+      : data?.player2_name;
+  }, [data]);
 
   const updateChatIntent = (round: number, who: "self" | "opponent", value: boolean) => {
     setChatIntentState((prev) => ({
@@ -75,6 +71,7 @@ const Game = () => {
         setError(null);
         const token = localStorage.getItem("token");
         if (!token) throw new Error("Invalid token.");
+
         const response = await fetch(`${API_URL}api/v1/game/${id}`, {
           method: "GET",
           headers: {
@@ -82,29 +79,30 @@ const Game = () => {
             Authorization: `Bearer ${token}`,
           },
         });
+
         if (!response.ok) {
-          if (response.status === 404) navigate("/404");
-          throw new Error(response.statusText);
+          throw new Error(
+            response.status === 404 ? "Game not found!" : response.statusText
+          );
         }
-        const data = await response.json();
-        setData(data);
-        setPlayerName(
-          localStorage.getItem("role") === "player1"
-            ? data.player1_name
-            : data.player2_name
-        );
-        setLoading(false);
+
+        const gameData = await response.json();
+        setData(gameData);
       } catch (err: any) {
         setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchGame();
-  }, [id, navigate]);
+  }, [id]);
 
   useEffect(() => {
     let ws: WebSocket;
 
     const initializeWebSocket = () => {
+<<<<<<< HEAD:src/pages/Game.tsx
       try {
         ws = new WebSocket(`${WS_URL}ws/game/${id}`);
         wsRef.current = ws;
@@ -166,6 +164,37 @@ const Game = () => {
         console.error("WebSocket initialization error:", err);
         setInfoMsg("WebSocket connection failed to initialize.");
       }
+=======
+      ws = new WebSocket(`${WS_URL}ws/game/${id}`);
+
+      ws.onmessage = (event) => {
+        try {
+          const wsData = JSON.parse(event.data);
+          setInfoMsg(wsData.message);
+
+          if (wsData.game_state === "finished") {
+            navigate(
+              `/game/summary/${id}?r=${
+                wsData.message.includes("abandoned") ? "abandon" : "finish"
+              }`
+            );
+          }
+
+          if (wsData.next_round) {
+            setData((prev: any) => ({
+              ...prev,
+              current_round: wsData.next_round,
+              player1_score: wsData.player1_score,
+              player2_score: wsData.player2_score,
+              rounds: wsData.rounds,
+            }));
+            setSelectedColor(null);
+          }
+        } catch (error) {
+          console.error("WebSocket message parsing error:", error);
+        }
+      };
+>>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
     };
 
     initializeWebSocket();
@@ -186,18 +215,27 @@ const Game = () => {
   }, [data?.current_round]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (data?.game_state === "waiting") return;
-      const round = data?.rounds?.[data?.current_round - 1];
-      if (!round?.created_at) return;
-      const createdTime = new Date(round.created_at).getTime();
-      const now = Date.now();
-      const elapsed = Math.floor((now - createdTime) / 1000);
-      const remaining = 60 - elapsed;
-      setTimer(remaining > 0 ? remaining : 0);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [data]);
+    if (!data) return;
+
+    setLoading(true);
+
+    if (
+      !data.player1_name ||
+      !data.player2_name ||
+      data.game_state === "waiting"
+    ) {
+      navigate(`/game/lobby/${id}`);
+    } else setLoading(false);
+  }, [data, navigate]);
+
+  const handleChoice = (color: string) => {
+    if (selectedColor) {
+      toastErrorWithSound("Wait for your opponent!");
+      return;
+    }
+    setSelectedColor(color);
+    chooseColor(color);
+  };
 
   useEffect(() => {
     if (data?.current_round === 4 || data?.current_round === 8) {
@@ -231,7 +269,6 @@ const Game = () => {
     if (data == null) return;
 
     try {
-      //console.log("Round: " + data.current_round);
       const response = await fetch(
         `${API_URL}api/v1/game/${id}/round/${data?.current_round || 1}/choice`,
         {
@@ -246,7 +283,6 @@ const Game = () => {
           }),
         }
       );
-      console.log(response);
 
       if (!response.ok) {
         const errorDetail = await response.json();
@@ -255,7 +291,11 @@ const Game = () => {
       await response.json();
     } catch (error: any) {
       console.error("Error choosing color:", error.message);
-      setError(`Failed to submit choice: ${error.message}`);
+      toast.error(`Failed to submit choice: ${error.message}`);
+
+      if (error.message.includes("finished")) {
+        navigate(`/game/summary/${id}?r=finish`);
+      }
     }
   };
 
@@ -274,29 +314,23 @@ const Game = () => {
       console.error("Error abandoning the game:", error.message);
       setError(`Failed to submit choice: ${error.message}`);
     } finally {
-      navigate(`/summary/${id}?r=abandon`);
+      navigate(`/game/summary/${id}?r=abandon`);
     }
   };
 
   if (loading) return LoadingPage();
   if (error) return ErrorPage(error);
   if (!data) return ErrorPage("Failed to fetch data!");
-  if (!data.player1_name || !data.player2_name)
-    return (
-      <WaitingLobby
-        id={id!}
-        game_code={data.code}
-        created_at={data.created_at}
-      />
-    );
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen w-screen bg-gradient-to-br from-red-700 to-blue-700 text-white overflow-y-auto px-4 py-4">
-      <div className="bg-black/20 backdrop-blur-md border border-black/20 p-8 rounded-3xl shadow-2xl w-full max-w-5xl flex flex-col items-center relative gap-8">
-        <h2 className="text-3xl font-bold text-white">
+    <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gradient-to-br from-red-700 to-blue-700 text-white overflow-y-auto px-4 sm:px-10 py-4">
+      <div className="bg-black/20 backdrop-blur-md border border-black/20 p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-full md:max-w-5xl flex flex-col items-center relative gap-6 sm:gap-8">
+        {/* Round Indicator */}
+        <h2 className="text-2xl sm:text-3xl font-bold text-white text-center">
           Round {data.current_round}
         </h2>
 
+<<<<<<< HEAD:src/pages/Game.tsx
         <div className="flex justify-between items-center gap-12 w-full max-w-5xl px-10">
           <div className="flex-1 flex justify-end">
             <div className="bg-white/10 backdrop-blur-md p-4 px-6 rounded-2xl text-center shadow-md w-full max-w-xs">
@@ -314,28 +348,22 @@ const Game = () => {
               </div>
             </div>
           </div>
+=======
+        {/* Player Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6 w-full px-4 sm:px-10">
+          {playerName === data.player1_name ? (
+            <PlayerCard player={data.player1_name} score={data.player1_score} />
+          ) : (
+            <PlayerCard player={data.player2_name} score={data.player2_score} />
+          )}
+>>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
 
-          <div className="flex-shrink-0">
-            <div className="relative w-40 h-40">
-              <svg className="absolute top-0 left-0 w-full h-full">
-                <circle
-                  cx="50%"
-                  cy="50%"
-                  r="70"
-                  stroke={getInterpolatedColor(timer)}
-                  strokeWidth="15"
-                  fill="transparent"
-                  strokeDasharray={2 * Math.PI * 70}
-                  strokeDashoffset={2 * Math.PI * 70 * ((60 - timer) / 60)}
-                  className="transition-all duration-1000 ease-linear"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center text-5xl font-bold text-white">
-                {timer}
-              </div>
-            </div>
-          </div>
+          <GameTimer
+            created_at={data?.rounds?.[data?.current_round - 1]?.created_at}
+            onHold={data.game_state === "waiting" || !data.current_round}
+          />
 
+<<<<<<< HEAD:src/pages/Game.tsx
           <div className="flex-1 flex justify-start">
             <div className="bg-white/10 backdrop-blur-md p-4 px-6 rounded-2xl text-center shadow-md w-full max-w-xs">
               <div className="text-white text-lg font-semibold mb-1">
@@ -352,17 +380,35 @@ const Game = () => {
               </div>
             </div>
           </div>
+=======
+          {playerName === data.player1_name ? (
+            <PlayerCard player={data.player2_name} score={data.player2_score} />
+          ) : (
+            <PlayerCard player={data.player1_name} score={data.player1_score} />
+          )}
+>>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
         </div>
 
-        <div className="grid grid-cols-2 gap-10 w-full max-w-5xl mt-6 px-10 z-10">
+        {/* Color Selection */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-6 px-4 sm:px-10">
           {["RED", "BLUE"].map((color) => (
             <div
               key={color}
               onClick={() => handleChoice(color)}
+<<<<<<< HEAD:src/pages/Game.tsx
               className={`relative transition-all duration-300 rounded-xl text-center text-4xl font-bold py-16 cursor-pointer border-4 ${selectedColor === color
                 ? `bg-${color.toLowerCase()}-600 border-white`
                 : `bg-${color.toLowerCase()}-500 border-transparent hover:scale-105`
                 }`}
+=======
+              className={`relative transition-all duration-300 rounded-xl text-center text-2xl sm:text-4xl font-bold py-12 sm:py-16 cursor-pointer border-4 
+              ${
+                selectedColor === color
+                  ? `bg-${color.toLowerCase()}-600 border-white`
+                  : `bg-${color.toLowerCase()}-500 border-transparent hover:scale-105`
+              }
+            `}
+>>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
             >
               {color}
               {selectedColor === color && (
@@ -372,20 +418,17 @@ const Game = () => {
           ))}
         </div>
 
-        <div className="mt-6 italic text-white/90 text-center">
-          <div className="text-white font-bold not-italic font-sans">
-            {infoMsg}
-          </div>
-          {selectedColor
-            ? `You selected: ${selectedColor}`
-            : "Choose wisely..."}
-          <div className="mt-1 text-sm text-white/90">
-            System:{" "}
-            {selectedColor ? "Waiting for opponent..." : "Round in progress"}
+        {/* Info & System Messages */}
+        <div className="mt-6 text-center text-white/90">
+          <div className="text-white font-bold">{infoMsg}</div>
+          <div className="mt-1 text-md">
+            {selectedColor ? "Waiting for opponent" : "Round in progress"}
+            <AnimatedDots />
           </div>
         </div>
 
-        <div className="flex gap-10">
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-10 mt-6">
           <button
             onClick={() => setShowSummary(true)}
             className="bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-6 rounded-lg transition-all shadow-md"
@@ -401,13 +444,14 @@ const Game = () => {
         </div>
       </div>
 
+      {/* Surrender Popup */}
       {showSurrenderPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="relative bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded shadow-lg w-full max-w-md">
             <h3 className="text-xl font-bold text-center mb-4">
               Are you sure you want to surrender?
             </h3>
-            <div className="flex justify-around gap-6">
+            <div className="flex flex-col sm:flex-row justify-around gap-6">
               <button
                 onClick={() => {
                   abandonGame();
@@ -428,6 +472,7 @@ const Game = () => {
         </div>
       )}
 
+<<<<<<< HEAD:src/pages/Game.tsx
       {chatPromptVisible && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="bg-black bg-opacity-20 backdrop-blur-md rounded p-6 text-white shadow-lg w-full max-w-sm">
@@ -452,6 +497,16 @@ const Game = () => {
                 Yes, I do
               </button>
             </div>
+=======
+      {/* Chat Popup */}
+      <AnimatePresence>
+        {chatVisible && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+            <ChatPopup
+              currentRound={data.current_round}
+              onClose={() => setChatVisible(false)}
+            />
+>>>>>>> 06748f7734ea81b4454cf80979530fb96cba8860:src/pages/game_page/Game.tsx
           </div>
         </div>
       )}
@@ -479,6 +534,7 @@ const Game = () => {
 </AnimatePresence>
 
 
+      {/* Game Summary Popup */}
       <AnimatePresence>
         {showSummary && (
           <GameSummary
@@ -491,6 +547,4 @@ const Game = () => {
       </AnimatePresence>
     </div>
   );
-};
-
-export default Game;
+}

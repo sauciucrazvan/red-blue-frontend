@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { API_URL } from "../config";
-import { toastErrorWithSound } from "./components/toastWithSound";
+import { API_URL } from "../../config";
+import { toastErrorWithSound } from "../../components/toastWithSound";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -52,7 +52,10 @@ export default function Dashboard() {
       const response = await fetch(API_URL + "api/v1/game/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player_name: playerName, code: joinGameCode }),
+        body: JSON.stringify({
+          player_name: playerName,
+          code: joinGameCode.toUpperCase(),
+        }),
       });
 
       if (!response.ok) {

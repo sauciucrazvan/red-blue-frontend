@@ -1,11 +1,15 @@
 import { lazy, useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
-import FinishPage from "./pages/FinishPage.tsx";
 
-const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
-const Game = lazy(() => import("./pages/Game.tsx"));
-const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+const Dashboard = lazy(() => import("./pages/game_flow_pages/Dashboard.tsx"));
+const Game = lazy(() => import("./pages/game_page/Game.tsx"));
+const NotFound = lazy(() => import("./pages/system_pages/NotFound.tsx"));
+const WaitingLobby = lazy(
+  () => import("./pages/game_flow_pages/WaitingLobby.tsx")
+);
+const JoinPage = lazy(() => import("./pages/game_flow_pages/JoinPage.tsx"));
+const FinishPage = lazy(() => import("./pages/game_flow_pages/FinishPage.tsx"));
 
 function ToastCleanup() {
   const location = useLocation();
@@ -27,15 +31,17 @@ export default function App() {
         toastOptions={{
           duration: 3000,
           style: {
-            backgroundColor: '#333',
-            color: 'white',
+            backgroundColor: "#333",
+            color: "white",
           },
         }}
       />
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/game/:id" element={<Game />} />
-        <Route path="/summary/:id" element={<FinishPage />} />
+        <Route path="/game/lobby/:id" element={<WaitingLobby />} />
+        <Route path="/game/summary/:id" element={<FinishPage />} />
+        <Route path="/game/join/:game_code" element={<JoinPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
