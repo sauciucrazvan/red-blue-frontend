@@ -45,6 +45,7 @@ export default function FinishPage() {
           throw new Error("Game not finished");
 
         setData(_data);
+        console.log(_data);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -165,6 +166,27 @@ export default function FinishPage() {
           View Game Summary
         </motion.button>
       </motion.div>
+
+      {/* Game Time */}
+      {data?.finished_at && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="text-sm mt-6 text-white/80"
+        >
+          This game took{" "}
+          {(() => {
+            const start = new Date(data.created_at);
+            const end = new Date(data.finished_at);
+            const diffMs = end.getTime() - start.getTime();
+            const minutes = Math.floor(diffMs / 60000);
+            const seconds = Math.floor((diffMs % 60000) / 1000);
+            return `${minutes} minutes, ${seconds} seconds`;
+          })()}{" "}
+          to finish.
+        </motion.div>
+      )}
 
       {/* Game ID */}
       <motion.div

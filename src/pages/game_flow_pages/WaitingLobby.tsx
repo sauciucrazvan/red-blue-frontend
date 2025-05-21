@@ -63,14 +63,14 @@ export default function WaitingLobby() {
       try {
         ws = new WebSocket(`${WS_URL}ws/game/${id}`);
 
-        // ws.onopen = () => {
-        //   console.log("WebSocket connection established in WaitingLobby");
-        // };
+        ws.onopen = () => {
+          console.log("WebSocket connection established in WaitingLobby");
+        };
 
         ws.onmessage = (event) => {
           try {
             const wsData = JSON.parse(event.data);
-            if (wsData.state === "active") {
+            if (wsData.game_state === "active") {
               console.log("Player connected, joining game...");
               navigate(`/game/${id}`);
             }
