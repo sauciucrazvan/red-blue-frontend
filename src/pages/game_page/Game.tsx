@@ -1,4 +1,3 @@
-// Game.tsx complet refactorizat cu timer centrat
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
@@ -13,6 +12,7 @@ import LoadingPage from "../system_pages/Loading";
 import GameTimer from "./components/game_timer";
 import PlayerCard from "./components/player_card";
 import AnimatedDots from "../../components/AnimatedDots";
+import ChatPopup from "./components/chat_popup";
 
 const roundStartSound = new Audio(soundFile);
 
@@ -29,6 +29,11 @@ export default function Game() {
   const [showSurrenderPopup, setShowSurrenderPopup] = useState(false);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [showChatRequest, setShowChatRequest] = useState(false);
+  const [chatAgreed, setChatAgreed] = useState(false);
+  const [opponentAgreed, setOpponentAgreed] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const playerName = useMemo(() => {
     return localStorage.getItem("role") === "player1"
@@ -75,38 +80,70 @@ export default function Game() {
 
     const initializeWebSocket = () => {
       ws = new WebSocket(`${WS_URL}ws/game/${id}`);
+      wsRef.current = ws;
 
-      ws.onmessage = (event) => {
-        try {
-          const wsData = JSON.parse(event.data);
-          setInfoMsg(wsData.message);
+    ws.onmessage = (event) => {
+      try {
+        const wsData = JSON.parse(event.data);
+        setInfoMsg(wsData.message);
 
-          if (wsData.game_state === "finished") {
-            navigate(
-              `/game/summary/${id}?r=${
-                wsData.message.includes("abandoned") ? "abandon" : "finish"
-              }`
-            );
-          }
-
-          if (wsData.next_round) {
-            setData((prev: any) => ({
-              ...prev,
-              current_round: wsData.next_round,
-              player1_score: wsData.player1_score,
-              player2_score: wsData.player2_score,
-              rounds: wsData.rounds,
-            }));
-            setSelectedColor(null);
-          }
-        } catch (error) {
-          console.error("WebSocket message parsing error:", error);
+        if (wsData.game_state === "finished") {
+          navigate(
+            `/game/summary/${id}?r=${
+              wsData.message.includes("abandoned") ? "abandon" : "finish"
+            }`
+          );
         }
-      };
+
+        // --- Chat logic ---
+        if (wsData.type === "chat-request") {
+          setShowChatRequest(true);
+        }
+        if (wsData.type === "chat-agree") {
+          setOpponentAgreed(true);
+          if (chatAgreed) {
+            setShowChatRequest(false);
+            setChatOpen(true);
+
+          }
+        }
+        if (wsData.type === "chat-decline") {
+          setShowChatRequest(false);
+          setChatAgreed(false);
+          setOpponentAgreed(false);
+          setChatOpen(false);
+        }
+        if (wsData.type === "chat-close") {
+          setChatOpen(false);
+          setChatAgreed(false);
+          setOpponentAgreed(false);
+        }
+
+        if (wsData.next_round) {
+          setData((prev: any) => ({
+            ...prev,
+            current_round: wsData.next_round,
+            player1_score: wsData.player1_score,
+            player2_score: wsData.player2_score,
+            rounds: wsData.rounds,
+          }));
+          setSelectedColor(null);
+
+          // Force close chat UI and reset chat state on round change
+          setShowChatRequest(false);
+          setChatOpen(false);
+          setChatAgreed(false);
+          setOpponentAgreed(false);
+        }
+
+      } catch (error) {
+        console.error("WebSocket message parsing error:", error);
+      }
     };
 
+  };
     initializeWebSocket();
-  }, [id, navigate]);
+  }, [id, navigate, chatAgreed]);
 
   useEffect(() => {
     if (!data?.current_round) return;
@@ -197,6 +234,17 @@ export default function Game() {
       navigate(`/game/summary/${id}?r=abandon`);
     }
   };
+
+  useEffect(() => {
+    if (data?.current_round === 4 || data?.current_round === 8) {
+      // Only send once per round, only if not already handled
+      wsRef.current?.send(JSON.stringify({ type: "chat-request" }));
+      setShowChatRequest(true);
+      setChatAgreed(false);
+      setOpponentAgreed(false);
+      setChatOpen(false);
+    }
+  }, [data?.current_round]);
 
   if (loading) return LoadingPage();
   if (error) return ErrorPage(error);
@@ -316,6 +364,59 @@ export default function Game() {
             onClose={() => setShowSummary(false)}
           />
         )}
+      </AnimatePresence>
+
+      {/* Chat Popup - Request to Open Chat */}
+      {showChatRequest && !chatOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-black bg-opacity-20 backdrop-blur-md rounded p-6 text-white shadow-lg w-full max-w-sm">
+            <h2 className="text-xl font-bold mb-4 flex justify-around gap-6">Do you want to chat?</h2>
+            <div className="flex justify-around gap-6">
+              <button
+                className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
+                onClick={() => {
+                  setShowChatRequest(false); // Close immediately
+                  setChatAgreed(false);
+                  wsRef.current?.send(JSON.stringify({ type: "chat-decline" }));
+                }}
+              >
+                No
+              </button>
+              <button
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+                onClick={() => {
+                  setChatAgreed(true);
+                  setShowChatRequest(false); // Close immediately
+                  wsRef.current?.send(JSON.stringify({ type: "chat-agree" }));
+                  if (opponentAgreed) {
+                    setShowChatRequest(false);
+                    setChatOpen(true);
+                  }
+                }}
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chat Popup - Active Chat Window */}
+      <AnimatePresence>
+      {chatOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <ChatPopup
+            currentRound={data?.current_round}
+            onClose={() => {
+              setChatOpen(false);
+              setChatAgreed(false);
+              setOpponentAgreed(false);
+              wsRef.current?.send(JSON.stringify({ type: "chat-close" }));
+            }}
+            socket={wsRef.current!}
+          />
+        </div>
+      )}
       </AnimatePresence>
     </div>
   );

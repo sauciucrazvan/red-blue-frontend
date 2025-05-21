@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 
 interface ChatPopupProps {
@@ -7,42 +7,65 @@ interface ChatPopupProps {
   socket: WebSocket;
 }
 
+interface ChatMessage {
+  sender: string;
+  message: string;
+  self: boolean;
+}
+
 const ChatPopup = ({ currentRound, onClose, socket }: ChatPopupProps) => {
-  const [chatMessages, setChatMessages] = useState<string[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [message, setMessage] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // Scroll la ultimul mesaj
+  const myRole = useMemo(() => localStorage.getItem("role") || "", []);
+
+  // Scroll to last message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
-  // Primește mesaje de la WebSocket
+  // Receive messages from WebSocket
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       const data = JSON.parse(event.data);
       if (data.type === "chat-message") {
-        setChatMessages((prev) => [...prev, `${data.sender}: ${data.message}`]);
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: data.sender,
+            message: data.message,
+            self: data.sender === myRole,
+          },
+        ]);
       }
     };
-
     socket.addEventListener("message", handleMessage);
     return () => {
       socket.removeEventListener("message", handleMessage);
     };
-  }, [socket]);
+  }, [socket, myRole]);
 
-  const sendMessage = () => {
-    if (message.trim()) {
-      // Afișează local
-      setChatMessages((prev) => [...prev, `You: ${message}`]);
-
-      // Trimite prin WebSocket
-      socket.send(JSON.stringify({ type: "chat-message", sender: message }));
-
+  const sendMessage = useCallback(() => {
+    if (message.trim() && socket.readyState === WebSocket.OPEN) {
+      socket.send(
+        JSON.stringify({
+          type: "chat-message",
+          sender: myRole,
+          message,
+        })
+      );
       setMessage("");
     }
-  };
+  }, [message, socket, myRole]);
+
+  // Allow Enter key to send
+  const handleInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") sendMessage();
+    },
+    [sendMessage]
+  );
 
   return (
     <motion.div
@@ -75,9 +98,17 @@ const ChatPopup = ({ currentRound, onClose, socket }: ChatPopupProps) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="mb-2"
+            className={`mb-2 flex ${msg.self ? "justify-end" : "justify-start"}`}
           >
-            • {msg}
+            <span
+              className={`inline-block px-3 py-1 rounded-lg max-w-xs break-words ${
+                msg.self
+                  ? "bg-blue-600 text-white ml-8"
+                  : "bg-gray-300 text-black mr-8"
+              }`}
+            >
+              {msg.message}
+            </span>
           </motion.div>
         ))}
         <div ref={chatEndRef} />
@@ -87,8 +118,10 @@ const ChatPopup = ({ currentRound, onClose, socket }: ChatPopupProps) => {
         type="text"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
+        onKeyDown={handleInputKeyDown}
         placeholder="Type a message..."
         className="w-full p-2 rounded bg-white/10 text-white placeholder-gray-300 mb-2 outline-none"
+        autoFocus
       />
       <button
         onClick={sendMessage}
