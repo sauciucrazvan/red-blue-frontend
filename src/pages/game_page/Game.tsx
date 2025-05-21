@@ -5,7 +5,6 @@ import soundFile from "../../assets/pop-up-notify-smooth-modern-332448.mp3";
 import { FiCheckCircle } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { API_URL, WS_URL } from "../../config";
-import ChatPopup from "./components/chat_popup";
 import GameSummary from "../../components/GameSummary";
 import { toastErrorWithSound } from "../../components/toastWithSound";
 import ErrorPage from "../system_pages/ErrorPage";
@@ -28,11 +27,11 @@ export default function Game() {
   const [showSummary, setShowSummary] = useState(false);
   const [showSurrenderPopup, setShowSurrenderPopup] = useState(false);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
-  const [chatPromptVisible, setChatPromptVisible] = useState(false);
-  const [chatIntent, setChatIntentState] = useState<{
-    [round: number]: { self: boolean; opponent: boolean };
-  }>({});
-  const [chatOpen, setChatOpen] = useState(false);
+  //const [chatPromptVisible, setChatPromptVisible] = useState(false);
+  // const [chatIntent, setChatIntentState] = useState<{
+  //   [round: number]: { self: boolean; opponent: boolean };
+  // }>({});
+  //const [chatOpen, setChatOpen] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
