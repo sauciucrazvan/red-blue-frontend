@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import LoadingPage from "../system_pages/Loading";
 import ErrorPage from "../system_pages/ErrorPage";
 import AnimatedDots from "../../components/AnimatedDots";
+import { toastErrorWithSound } from "../../components/toastWithSound";
 
 export default function WaitingLobby() {
   const navigate = useNavigate();
@@ -93,6 +94,36 @@ export default function WaitingLobby() {
 
     initializeWebSocket();
   }, [id]);
+
+  const destroyGame = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.error(
+        "Something went wrong: invalid token. The game will automatically be deleted in 10 minutes."
+      );
+      navigate(`/`);
+      return;
+    }
+
+    try {
+      const response = await fetch(API_URL + `api/v1/game/${id}/delete`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error(`Error: ${response.statusText}`);
+      const data = await response.json();
+      console.log(data.message);
+      navigate(`/`);
+      toast.success(data.message);
+    } catch (err: any) {
+      toastErrorWithSound(err.message || "Something went wrong.");
+    }
+  };
 
   const copyToClipboard = async () => {
     try {
@@ -182,12 +213,12 @@ export default function WaitingLobby() {
               The game will start once your opponent joins.
             </p>
           </div>
-          <a
-            href="/"
+          <button
+            onClick={destroyGame}
             className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded shadow-md"
           >
             Cancel & Return
-          </a>
+          </button>
         </div>
       </motion.div>
     </div>
