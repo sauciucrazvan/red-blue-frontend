@@ -33,6 +33,8 @@ export default function Game() {
   const [chatAgreed, setChatAgreed] = useState(false);
   const [opponentAgreed, setOpponentAgreed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [hasAnsweredChat, setHasAnsweredChat] = useState(false);
+  const [opponentDeclinedChat, setOpponentDeclinedChat] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
 
   const playerName = useMemo(() => {
@@ -82,66 +84,66 @@ export default function Game() {
       ws = new WebSocket(`${WS_URL}ws/game/${id}`);
       wsRef.current = ws;
 
-    ws.onmessage = (event) => {
-      try {
-        const wsData = JSON.parse(event.data);
-        setInfoMsg(wsData.message);
+      ws.onmessage = (event) => {
+        try {
+          const wsData = JSON.parse(event.data);
 
-        if (wsData.game_state === "finished") {
-          navigate(
-            `/game/summary/${id}?r=${
-              wsData.message.includes("abandoned") ? "abandon" : "finish"
-            }`
-          );
-        }
-
-        // --- Chat logic ---
-        if (wsData.type === "chat-request") {
-          setShowChatRequest(true);
-        }
-        if (wsData.type === "chat-agree") {
-          setOpponentAgreed(true);
-          if (chatAgreed) {
-            setShowChatRequest(false);
-            setChatOpen(true);
-
+          if (wsData.game_state === "finished") {
+            navigate(
+              `/game/summary/${id}?r=${wsData.message.includes("abandoned") ? "abandon" : "finish"
+              }`
+            );
           }
-        }
-        if (wsData.type === "chat-decline") {
-          setShowChatRequest(false);
-          setChatAgreed(false);
-          setOpponentAgreed(false);
-          setChatOpen(false);
-        }
-        if (wsData.type === "chat-close") {
-          setChatOpen(false);
-          setChatAgreed(false);
-          setOpponentAgreed(false);
-        }
 
-        if (wsData.next_round) {
-          setData((prev: any) => ({
-            ...prev,
-            current_round: wsData.next_round,
-            player1_score: wsData.player1_score,
-            player2_score: wsData.player2_score,
-            rounds: wsData.rounds,
-          }));
-          setSelectedColor(null);
+          // --- Chat logic ---
+          if (wsData.type !== "chat-message" && wsData.message) {
+            setInfoMsg(wsData.message);
+          }
 
-          // Force close chat UI and reset chat state on round change
-          setShowChatRequest(false);
-          setChatOpen(false);
-          setChatAgreed(false);
-          setOpponentAgreed(false);
+          if (wsData.type === "chat-request") {
+            setShowChatRequest(true);
+          }
+          if (wsData.type === "chat-agree") {
+            setOpponentAgreed(true);
+          }
+          if (wsData.type === "chat-decline") {
+            if (hasAnsweredChat) {
+              setShowChatRequest(false);
+              if (chatAgreed) setOpponentDeclinedChat(true);
+            }
+            setChatAgreed(false);
+            setOpponentAgreed(false);
+            setChatOpen(false);
+          }
+          if (wsData.type === "chat-close") {
+            setChatOpen(false);
+            setChatAgreed(false);
+            setOpponentAgreed(false);
+          }
+
+          if (wsData.next_round) {
+            setData((prev: any) => ({
+              ...prev,
+              current_round: wsData.next_round,
+              player1_score: wsData.player1_score,
+              player2_score: wsData.player2_score,
+              rounds: wsData.rounds,
+            }));
+            setSelectedColor(null);
+
+            // Force close chat UI and reset chat state on round change
+            setShowChatRequest(false);
+            setChatOpen(false);
+            setChatAgreed(false);
+            setOpponentAgreed(false);
+          }
+
+        } catch (error) {
+          console.error("WebSocket message parsing error:", error);
         }
+      };
 
-      } catch (error) {
-        console.error("WebSocket message parsing error:", error);
-      }
     };
-
-  };
     initializeWebSocket();
   }, [id, navigate, chatAgreed]);
 
@@ -237,14 +239,22 @@ export default function Game() {
 
   useEffect(() => {
     if (data?.current_round === 4 || data?.current_round === 8) {
-      // Only send once per round, only if not already handled
       wsRef.current?.send(JSON.stringify({ type: "chat-request" }));
       setShowChatRequest(true);
       setChatAgreed(false);
       setOpponentAgreed(false);
       setChatOpen(false);
+      setHasAnsweredChat(false);
+      setOpponentDeclinedChat(false); // Reset on new chat
     }
   }, [data?.current_round]);
+
+  useEffect(() => {
+    if (chatAgreed && opponentAgreed) {
+      setShowChatRequest(false);
+      setChatOpen(true);
+    }
+  }, [chatAgreed, opponentAgreed]);
 
   if (loading) return LoadingPage();
   if (error) return ErrorPage(error);
@@ -285,11 +295,10 @@ export default function Game() {
               key={color}
               onClick={() => handleChoice(color)}
               className={`relative transition-all duration-300 rounded-xl text-center text-2xl sm:text-4xl font-bold py-12 sm:py-16 cursor-pointer border-4 
-              ${
-                selectedColor === color
+              ${selectedColor === color
                   ? `bg-${color.toLowerCase()}-600 border-white`
                   : `bg-${color.toLowerCase()}-500 border-transparent hover:scale-105`
-              }
+                }
             `}
             >
               {color}
@@ -304,7 +313,11 @@ export default function Game() {
         <div className="mt-6 text-center text-white/90">
           <div className="text-white font-bold">{infoMsg}</div>
           <div className="mt-1 text-md">
-            {selectedColor ? "Waiting for opponent" : "Round in progress"}
+            {opponentDeclinedChat
+              ? "Opponent declined to chat"
+              : selectedColor
+                ? "Waiting for opponent"
+                : "Round in progress"}
             <AnimatedDots />
           </div>
         </div>
@@ -367,7 +380,7 @@ export default function Game() {
       </AnimatePresence>
 
       {/* Chat Popup - Request to Open Chat */}
-      {showChatRequest && !chatOpen && (
+      {showChatRequest && !chatOpen && !hasAnsweredChat && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="bg-black bg-opacity-20 backdrop-blur-md rounded p-6 text-white shadow-lg w-full max-w-sm">
             <h2 className="text-xl font-bold mb-4 flex justify-around gap-6">Do you want to chat?</h2>
@@ -375,9 +388,10 @@ export default function Game() {
               <button
                 className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
                 onClick={() => {
-                  setShowChatRequest(false); // Close immediately
+                  setShowChatRequest(false);
                   setChatAgreed(false);
-                  wsRef.current?.send(JSON.stringify({ type: "chat-decline" }));
+                  setHasAnsweredChat(true);
+                  wsRef.current?.send(JSON.stringify({ type: "chat-decline", player_name: playerName }));
                 }}
               >
                 No
@@ -386,12 +400,8 @@ export default function Game() {
                 className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
                 onClick={() => {
                   setChatAgreed(true);
-                  setShowChatRequest(false); // Close immediately
-                  wsRef.current?.send(JSON.stringify({ type: "chat-agree" }));
-                  if (opponentAgreed) {
-                    setShowChatRequest(false);
-                    setChatOpen(true);
-                  }
+                  setHasAnsweredChat(true);
+                  wsRef.current?.send(JSON.stringify({ type: "chat-agree", player_name: playerName }));
                 }}
               >
                 Yes
@@ -403,20 +413,20 @@ export default function Game() {
 
       {/* Chat Popup - Active Chat Window */}
       <AnimatePresence>
-      {chatOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <ChatPopup
-            currentRound={data?.current_round}
-            onClose={() => {
-              setChatOpen(false);
-              setChatAgreed(false);
-              setOpponentAgreed(false);
-              wsRef.current?.send(JSON.stringify({ type: "chat-close" }));
-            }}
-            socket={wsRef.current!}
-          />
-        </div>
-      )}
+        {chatOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+            <ChatPopup
+              currentRound={data?.current_round}
+              onClose={() => {
+                setChatOpen(false);
+                setChatAgreed(false);
+                setOpponentAgreed(false);
+                wsRef.current?.send(JSON.stringify({ type: "chat-close" }));
+              }}
+              socket={wsRef.current!}
+            />
+          </div>
+        )}
       </AnimatePresence>
     </div>
   );
