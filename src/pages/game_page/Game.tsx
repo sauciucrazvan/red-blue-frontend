@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import soundFile from "../../assets/pop-up-notify-smooth-modern-332448.mp3";
 import { FiCheckCircle } from "react-icons/fi";
 import toast from "react-hot-toast";
@@ -348,32 +348,55 @@ export default function Game() {
       </div>
 
       {/* Surrender Popup */}
-      {showSurrenderPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div className="relative bg-black bg-opacity-20 backdrop-blur-md text-white p-6 rounded shadow-lg w-full max-w-md">
-            <h3 className="text-xl font-bold text-center mb-4">
-              Are you sure you want to surrender?
-            </h3>
-            <div className="flex flex-col sm:flex-row justify-around gap-6">
-              <button
-                onClick={() => {
-                  abandonGame();
-                  setShowSurrenderPopup(false);
-                }}
-                className="bg-gradient-to-r from-red-700 via-red-500 to-red-400 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all"
-              >
-                Yes, Surrender
-              </button>
-              <button
-                onClick={() => setShowSurrenderPopup(false)}
-                className="bg-gradient-to-r from-blue-700 via-blue-500 to-blue-400 hover:opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition-all"
-              >
-                No, Go Back
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showSurrenderPopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, y: -50 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{
+                scale: 0.8,
+                opacity: 0,
+                y: 50,
+                transition: { duration: 0.5 },
+              }}
+              transition={{
+                duration: 0.5,
+                type: "spring",
+                stiffness: 300,
+                damping: 25,
+              }}
+              className="bg-black bg-opacity-20 backdrop-blur-md rounded p-6 text-white shadow-lg w-full max-w-sm"
+            >
+              <h3 className="text-xl font-bold text-center mb-4">
+                Are you sure you want to surrender?
+              </h3>
+              <div className="flex flex-col sm:flex-row justify-around gap-6">
+                <button
+                  onClick={() => {
+                    abandonGame();
+                    setShowSurrenderPopup(false);
+                  }}
+                  className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
+                >
+                  Yes, Surrender
+                </button>
+                <button
+                  onClick={() => setShowSurrenderPopup(false)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+                >
+                  No, Go Back
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Game Summary Popup */}
       <AnimatePresence>
@@ -388,38 +411,61 @@ export default function Game() {
       </AnimatePresence>
 
       {/* Chat Popup - Request to Open Chat */}
-      {showChatRequest && !chatOpen && myChatAnswer === null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <div className="bg-black bg-opacity-20 backdrop-blur-md rounded p-6 text-white shadow-lg w-full max-w-sm">
-            <h2 className="text-xl font-bold mb-4 flex justify-around gap-6">Do you want to chat?</h2>
-            <div className="flex justify-around gap-6">
-              <button
-                className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
-                onClick={() => {
-                  setShowChatRequest(false);
-                  setMyChatAnswer("no");
-                  if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                    wsRef.current.send(JSON.stringify({ type: "chat-decline", player_name: playerName }));
-                  }
-                }}
-              >
-                No
-              </button>
-              <button
-                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-                onClick={() => {
-                  setMyChatAnswer("yes");
-                  if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                    wsRef.current.send(JSON.stringify({ type: "chat-agree", player_name: playerName }));
-                  }
-                }}
-              >
-                Yes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showChatRequest && !chatOpen && myChatAnswer === null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, y: -50 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{
+                scale: 0.8,
+                opacity: 0,
+                y: 50,
+                transition: { duration: 0.5 },
+              }}
+              transition={{
+                duration: 0.5,
+                type: "spring",
+                stiffness: 300,
+                damping: 25,
+              }}
+              className="bg-black bg-opacity-20 backdrop-blur-md rounded p-6 text-white shadow-lg w-full max-w-sm"
+            >
+              <h2 className="text-xl font-bold mb-4 flex justify-around gap-6">Do you want to chat?</h2>
+              <div className="flex justify-around gap-6">
+                <button
+                  className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
+                  onClick={() => {
+                    setShowChatRequest(false);
+                    setMyChatAnswer("no");
+                    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                      wsRef.current.send(JSON.stringify({ type: "chat-decline", player_name: playerName }));
+                    }
+                  }}
+                >
+                  No, I don't
+                </button>
+                <button
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+                  onClick={() => {
+                    setMyChatAnswer("yes");
+                    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                      wsRef.current.send(JSON.stringify({ type: "chat-agree", player_name: playerName }));
+                    }
+                  }}
+                >
+                  Yes, I do
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Chat Popup - Active Chat Window */}
       <AnimatePresence>
