@@ -33,7 +33,9 @@ export default function Game() {
   const [showChatRequest, setShowChatRequest] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [myChatAnswer, setMyChatAnswer] = useState<"yes" | "no" | null>(null);
-  const [opponentChatAnswer, setOpponentChatAnswer] = useState<"yes" | "no" | null>(null);
+  const [opponentChatAnswer, setOpponentChatAnswer] = useState<
+    "yes" | "no" | null
+  >(null);
 
   const playerName = useMemo(() => {
     return localStorage.getItem("role") === "player1"
@@ -87,11 +89,19 @@ export default function Game() {
       ws.onmessage = (event) => {
         try {
           const wsData = JSON.parse(event.data);
+          if (wsData.message) setInfoMsg(wsData.message);
 
           if (wsData.game_state === "finished") {
             navigate(
-              `/game/summary/${id}?r=${wsData.message?.includes("abandoned") ? "abandon" : "finish"}`
+              `/game/summary/${id}?r=${
+                wsData.message?.includes("abandoned") ? "abandon" : "finish"
+              }`
             );
+          }
+
+          if (wsData.type === "disconnect_event") {
+            navigate(`/game/lobby/${id}`);
+            return;
           }
 
           // --- Chat logic ---
@@ -148,6 +158,27 @@ export default function Game() {
       wsRef.current = null;
     };
   }, [id, navigate]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(
+          JSON.stringify({
+            type: "disconnect_event",
+            player_name: playerName,
+            token: localStorage.getItem("token"),
+          })
+        );
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [playerName]);
 
   // Open chat only if both say yes, close if at least one says no or close the chat
   useEffect(() => {
@@ -305,10 +336,11 @@ export default function Game() {
               key={color}
               onClick={() => handleChoice(color)}
               className={`relative transition-all duration-300 rounded-xl text-center text-2xl sm:text-4xl font-bold py-12 sm:py-16 cursor-pointer border-4 
-              ${selectedColor === color
+              ${
+                selectedColor === color
                   ? `bg-${color.toLowerCase()}-600 border-white`
                   : `bg-${color.toLowerCase()}-500 border-transparent hover:scale-105`
-                }
+              }
             `}
             >
               {color}
@@ -323,9 +355,7 @@ export default function Game() {
         <div className="mt-6 text-center text-white/90">
           <div className="text-white font-bold">{infoMsg}</div>
           <div className="mt-1 text-md">
-            {selectedColor
-              ? "Waiting for opponent"
-              : "Round in progress"}
+            {selectedColor ? "Waiting for opponent" : "Round in progress"}
             <AnimatedDots />
           </div>
         </div>
@@ -436,15 +466,25 @@ export default function Game() {
               }}
               className="bg-black bg-opacity-20 backdrop-blur-md rounded p-6 text-white shadow-lg w-full max-w-sm"
             >
-              <h2 className="text-xl font-bold mb-4 flex justify-around gap-6">Do you want to chat?</h2>
+              <h2 className="text-xl font-bold mb-4 flex justify-around gap-6">
+                Do you want to chat?
+              </h2>
               <div className="flex justify-around gap-6">
                 <button
                   className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
                   onClick={() => {
                     setShowChatRequest(false);
                     setMyChatAnswer("no");
-                    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                      wsRef.current.send(JSON.stringify({ type: "chat-decline", player_name: playerName }));
+                    if (
+                      wsRef.current &&
+                      wsRef.current.readyState === WebSocket.OPEN
+                    ) {
+                      wsRef.current.send(
+                        JSON.stringify({
+                          type: "chat-decline",
+                          player_name: playerName,
+                        })
+                      );
                     }
                   }}
                 >
@@ -454,8 +494,16 @@ export default function Game() {
                   className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
                   onClick={() => {
                     setMyChatAnswer("yes");
-                    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                      wsRef.current.send(JSON.stringify({ type: "chat-agree", player_name: playerName }));
+                    if (
+                      wsRef.current &&
+                      wsRef.current.readyState === WebSocket.OPEN
+                    ) {
+                      wsRef.current.send(
+                        JSON.stringify({
+                          type: "chat-agree",
+                          player_name: playerName,
+                        })
+                      );
                     }
                   }}
                 >
@@ -477,7 +525,10 @@ export default function Game() {
                 setChatOpen(false);
                 setMyChatAnswer(null);
                 setOpponentChatAnswer(null);
-                if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                if (
+                  wsRef.current &&
+                  wsRef.current.readyState === WebSocket.OPEN
+                ) {
                   wsRef.current.send(JSON.stringify({ type: "chat-close" }));
                 }
               }}

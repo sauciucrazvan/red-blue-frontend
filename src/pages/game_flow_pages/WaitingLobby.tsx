@@ -64,6 +64,22 @@ export default function WaitingLobby() {
       setExpHours(localExpDate.getHours().toString().padStart(2, "0"));
       setExpMinutes(localExpDate.getMinutes().toString().padStart(2, "0"));
     }
+
+    if (data && data.game_state === "pause") {
+      let expDate = new Date(data.player1_disconnected_at);
+      if (data.player2_disconnected_at)
+        expDate = new Date(data.player2_disconnected_at);
+
+      expDate.setMinutes(expDate.getMinutes() + 10);
+
+      // Converting to users' local timezone (hopefully)
+      const localExpDate = new Date(
+        expDate.getTime() + expDate.getTimezoneOffset() * 60000 * -1
+      );
+
+      setExpHours(localExpDate.getHours().toString().padStart(2, "0"));
+      setExpMinutes(localExpDate.getMinutes().toString().padStart(2, "0"));
+    }
   }, [data]);
 
   useEffect(() => {
@@ -159,7 +175,8 @@ export default function WaitingLobby() {
         className="bg-black bg-opacity-10 backdrop-blur-md border border-white border-opacity-30 rounded-2xl shadow-xl p-10 max-w-md w-full text-center space-y-6"
       >
         <h2 className="text-2xl font-bold">
-          Waiting for the opponent
+          Waiting for the opponent{" "}
+          {data.game_state === "pause" && <span>to come back</span>}
           <AnimatedDots />
         </h2>
         <p className="text-lg">
@@ -216,18 +233,23 @@ export default function WaitingLobby() {
               <b>
                 {expHours}:{expMinutes}
               </b>{" "}
-              if no one joins.
+              {data.game_state === "pause"
+                ? "if he does not join back."
+                : "if no one joins."}
             </span>
             <p className="text-xs text-white italic">
-              The game will start once your opponent joins.
+              The game will start once{" "}
+              {data.game_state === "pause" && "again when"} your opponent joins.
             </p>
           </div>
-          <button
-            onClick={destroyGame}
-            className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded shadow-md"
-          >
-            Cancel & Return
-          </button>
+          {data.game_state === "waiting" && (
+            <button
+              onClick={destroyGame}
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded shadow-md"
+            >
+              Cancel & Return
+            </button>
+          )}
         </div>
       </motion.div>
     </div>
