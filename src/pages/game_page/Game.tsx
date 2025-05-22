@@ -30,11 +30,10 @@ export default function Game() {
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [showChatRequest, setShowChatRequest] = useState(false);
-  const [chatAgreed, setChatAgreed] = useState(false);
-  const [opponentAgreed, setOpponentAgreed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [hasAnsweredChat, setHasAnsweredChat] = useState(false);
-  const [opponentDeclinedChat, setOpponentDeclinedChat] = useState(false);
+  const [myChatAnswer, setMyChatAnswer] = useState<"yes" | "no" | null>(null);
+  const [opponentChatAnswer, setOpponentChatAnswer] = useState<"yes" | "no" | null>(null);
+
   const wsRef = useRef<WebSocket | null>(null);
 
   const playerName = useMemo(() => {
@@ -104,21 +103,19 @@ export default function Game() {
             setShowChatRequest(true);
           }
           if (wsData.type === "chat-agree") {
-            setOpponentAgreed(true);
+            setOpponentChatAnswer("yes");
           }
           if (wsData.type === "chat-decline") {
-            if (hasAnsweredChat) {
-              setShowChatRequest(false);
-              if (chatAgreed) setOpponentDeclinedChat(true);
-            }
-            setChatAgreed(false);
-            setOpponentAgreed(false);
+            setOpponentChatAnswer("no");
+            setShowChatRequest(false);
             setChatOpen(false);
+            setInfoMsg("A player declined the chat request.");
           }
           if (wsData.type === "chat-close") {
             setChatOpen(false);
-            setChatAgreed(false);
-            setOpponentAgreed(false);
+            setMyChatAnswer(null);
+            setOpponentChatAnswer(null);
+            //setOpponentDeclinedChat(false);
           }
 
           if (wsData.next_round) {
@@ -134,8 +131,9 @@ export default function Game() {
             // Force close chat UI and reset chat state on round change
             setShowChatRequest(false);
             setChatOpen(false);
-            setChatAgreed(false);
-            setOpponentAgreed(false);
+            setMyChatAnswer(null);
+            setOpponentChatAnswer(null);
+            //setOpponentDeclinedChat(false);
           }
 
         } catch (error) {
@@ -145,7 +143,38 @@ export default function Game() {
 
     };
     initializeWebSocket();
-  }, [id, navigate, chatAgreed]);
+
+    // CLEANUP: close socket on unmount or id change
+    return () => {
+      wsRef.current?.close();
+      wsRef.current = null;
+    };
+  }, [id, navigate]);
+
+  // Open chat only if both say yes, close if at least one says no
+  useEffect(() => {
+    if (myChatAnswer === "yes" && opponentChatAnswer === "yes") {
+      setShowChatRequest(false);
+      setChatOpen(true);
+      //setOpponentDeclinedChat(false);
+    }
+    if (myChatAnswer === "no" || opponentChatAnswer === "no") {
+      setShowChatRequest(false);
+      setChatOpen(false);
+    }
+  }, [myChatAnswer, opponentChatAnswer]);
+
+  // Reset chat state on new chat round
+  useEffect(() => {
+    if (data?.current_round === 4 || data?.current_round === 8) {
+      wsRef.current?.send(JSON.stringify({ type: "chat-request" }));
+      setShowChatRequest(true);
+      setMyChatAnswer(null);
+      setOpponentChatAnswer(null);
+      setChatOpen(false);
+      //setOpponentDeclinedChat(false);
+    }
+  }, [data?.current_round]);
 
   useEffect(() => {
     if (!data?.current_round) return;
@@ -237,25 +266,6 @@ export default function Game() {
     }
   };
 
-  useEffect(() => {
-    if (data?.current_round === 4 || data?.current_round === 8) {
-      wsRef.current?.send(JSON.stringify({ type: "chat-request" }));
-      setShowChatRequest(true);
-      setChatAgreed(false);
-      setOpponentAgreed(false);
-      setChatOpen(false);
-      setHasAnsweredChat(false);
-      setOpponentDeclinedChat(false); // Reset on new chat
-    }
-  }, [data?.current_round]);
-
-  useEffect(() => {
-    if (chatAgreed && opponentAgreed) {
-      setShowChatRequest(false);
-      setChatOpen(true);
-    }
-  }, [chatAgreed, opponentAgreed]);
-
   if (loading) return LoadingPage();
   if (error) return ErrorPage(error);
   if (!data) return ErrorPage("Failed to fetch data!");
@@ -313,9 +323,7 @@ export default function Game() {
         <div className="mt-6 text-center text-white/90">
           <div className="text-white font-bold">{infoMsg}</div>
           <div className="mt-1 text-md">
-            {opponentDeclinedChat
-              ? "Opponent declined to chat"
-              : selectedColor
+            {selectedColor
                 ? "Waiting for opponent"
                 : "Round in progress"}
             <AnimatedDots />
@@ -380,7 +388,7 @@ export default function Game() {
       </AnimatePresence>
 
       {/* Chat Popup - Request to Open Chat */}
-      {showChatRequest && !chatOpen && !hasAnsweredChat && (
+      {showChatRequest && !chatOpen && myChatAnswer === null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="bg-black bg-opacity-20 backdrop-blur-md rounded p-6 text-white shadow-lg w-full max-w-sm">
             <h2 className="text-xl font-bold mb-4 flex justify-around gap-6">Do you want to chat?</h2>
@@ -389,9 +397,10 @@ export default function Game() {
                 className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
                 onClick={() => {
                   setShowChatRequest(false);
-                  setChatAgreed(false);
-                  setHasAnsweredChat(true);
-                  wsRef.current?.send(JSON.stringify({ type: "chat-decline", player_name: playerName }));
+                  setMyChatAnswer("no");
+                  if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                    wsRef.current.send(JSON.stringify({ type: "chat-decline", player_name: playerName }));
+                  }
                 }}
               >
                 No
@@ -399,9 +408,10 @@ export default function Game() {
               <button
                 className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
                 onClick={() => {
-                  setChatAgreed(true);
-                  setHasAnsweredChat(true);
-                  wsRef.current?.send(JSON.stringify({ type: "chat-agree", player_name: playerName }));
+                  setMyChatAnswer("yes");
+                  if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                    wsRef.current.send(JSON.stringify({ type: "chat-agree", player_name: playerName }));
+                  }
                 }}
               >
                 Yes
@@ -419,9 +429,11 @@ export default function Game() {
               currentRound={data?.current_round}
               onClose={() => {
                 setChatOpen(false);
-                setChatAgreed(false);
-                setOpponentAgreed(false);
-                wsRef.current?.send(JSON.stringify({ type: "chat-close" }));
+                setMyChatAnswer(null);
+                setOpponentChatAnswer(null);
+                if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                  wsRef.current.send(JSON.stringify({ type: "chat-close" }));
+                }
               }}
               socket={wsRef.current!}
             />
