@@ -21,6 +21,7 @@ export default function Game() {
   const navigate = useNavigate();
 
   const prevRoundRef = useRef<number | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,14 +35,13 @@ export default function Game() {
   const [myChatAnswer, setMyChatAnswer] = useState<"yes" | "no" | null>(null);
   const [opponentChatAnswer, setOpponentChatAnswer] = useState<"yes" | "no" | null>(null);
 
-  const wsRef = useRef<WebSocket | null>(null);
-
   const playerName = useMemo(() => {
     return localStorage.getItem("role") === "player1"
       ? data?.player1_name
       : data?.player2_name;
   }, [data]);
 
+  // Fetch game data
   useEffect(() => {
     const fetchGame = async () => {
       try {
@@ -76,6 +76,7 @@ export default function Game() {
     fetchGame();
   }, [id]);
 
+  // WebSocket connection and message handling
   useEffect(() => {
     let ws: WebSocket;
 
@@ -89,8 +90,7 @@ export default function Game() {
 
           if (wsData.game_state === "finished") {
             navigate(
-              `/game/summary/${id}?r=${wsData.message.includes("abandoned") ? "abandon" : "finish"
-              }`
+              `/game/summary/${id}?r=${wsData.message?.includes("abandoned") ? "abandon" : "finish"}`
             );
           }
 
@@ -115,7 +115,7 @@ export default function Game() {
             setChatOpen(false);
             setMyChatAnswer(null);
             setOpponentChatAnswer(null);
-            //setOpponentDeclinedChat(false);
+            setInfoMsg("A player closed the chat.");
           }
 
           if (wsData.next_round) {
@@ -128,20 +128,18 @@ export default function Game() {
             }));
             setSelectedColor(null);
 
-            // Force close chat UI and reset chat state on round change
+            // Reset chat state on round change
             setShowChatRequest(false);
             setChatOpen(false);
             setMyChatAnswer(null);
             setOpponentChatAnswer(null);
-            //setOpponentDeclinedChat(false);
           }
-
         } catch (error) {
           console.error("WebSocket message parsing error:", error);
         }
       };
-
     };
+
     initializeWebSocket();
 
     // CLEANUP: close socket on unmount or id change
@@ -151,20 +149,23 @@ export default function Game() {
     };
   }, [id, navigate]);
 
-  // Open chat only if both say yes, close if at least one says no
+  // Open chat only if both say yes, close if at least one says no or close the chat
   useEffect(() => {
     if (myChatAnswer === "yes" && opponentChatAnswer === "yes") {
       setShowChatRequest(false);
       setChatOpen(true);
-      //setOpponentDeclinedChat(false);
     }
-    if (myChatAnswer === "no" || opponentChatAnswer === "no") {
+    if (
+      myChatAnswer === "no" ||
+      opponentChatAnswer === "no" ||
+      (myChatAnswer === null && opponentChatAnswer === null && !chatOpen)
+    ) {
       setShowChatRequest(false);
       setChatOpen(false);
     }
-  }, [myChatAnswer, opponentChatAnswer]);
+  }, [myChatAnswer, opponentChatAnswer, chatOpen]);
 
-  // Reset chat state on new chat round
+  // Reset chat state and send chat request on new chat round
   useEffect(() => {
     if (data?.current_round === 4 || data?.current_round === 8) {
       wsRef.current?.send(JSON.stringify({ type: "chat-request" }));
@@ -172,10 +173,10 @@ export default function Game() {
       setMyChatAnswer(null);
       setOpponentChatAnswer(null);
       setChatOpen(false);
-      //setOpponentDeclinedChat(false);
     }
   }, [data?.current_round]);
 
+  // Play sound on round change
   useEffect(() => {
     if (!data?.current_round) return;
     const prevRound = prevRoundRef.current;
@@ -190,11 +191,10 @@ export default function Game() {
     prevRoundRef.current = currentRound;
   }, [data?.current_round]);
 
+  // Redirect to lobby if game not ready
   useEffect(() => {
     if (!data) return;
-
     setLoading(true);
-
     if (
       !data.player1_name ||
       !data.player2_name ||
@@ -324,8 +324,8 @@ export default function Game() {
           <div className="text-white font-bold">{infoMsg}</div>
           <div className="mt-1 text-md">
             {selectedColor
-                ? "Waiting for opponent"
-                : "Round in progress"}
+              ? "Waiting for opponent"
+              : "Round in progress"}
             <AnimatedDots />
           </div>
         </div>
