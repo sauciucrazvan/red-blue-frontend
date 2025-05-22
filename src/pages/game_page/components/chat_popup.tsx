@@ -5,6 +5,9 @@ interface ChatPopupProps {
   currentRound: number;
   onClose: () => void;
   socket: WebSocket;
+  myRole: string;
+  player1Name: string;
+  player2Name: string;
 }
 
 interface ChatMessage {
@@ -13,17 +16,46 @@ interface ChatMessage {
   self: boolean;
 }
 
-const ChatPopup = ({ currentRound, onClose, socket }: ChatPopupProps) => {
+const ChatPopup = ({
+  currentRound,
+  onClose,
+  socket,
+  myRole,
+  player1Name,
+  player2Name,
+}: ChatPopupProps) => {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [message, setMessage] = useState("");
+  const [opponentReady, setOpponentReady] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const myRole = useMemo(() => localStorage.getItem("role") || "", []);
+  const opponentName = useMemo(
+    () => (myRole === "player1" ? player2Name : player1Name),
+    [myRole, player1Name, player2Name]
+  );
+  const myName = useMemo(
+    () => (myRole === "player1" ? player1Name : player2Name),
+    [myRole, player1Name, player2Name]
+  );
 
   // Scroll to last message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
+
+  // Notify server that this player has opened the chat
+  useEffect(() => {
+    const sendAgree = () => {
+      socket.send(
+        JSON.stringify({ type: "chat-agree", sender: myRole, name: myName })
+      );
+    };
+    if (socket.readyState === WebSocket.OPEN) {
+      sendAgree();
+    } else {
+      socket.addEventListener("open", sendAgree, { once: true });
+    }
+  }, [socket, myRole, myName]);
 
   // Receive messages from WebSocket
   useEffect(() => {
@@ -38,6 +70,12 @@ const ChatPopup = ({ currentRound, onClose, socket }: ChatPopupProps) => {
             self: data.sender === myRole,
           },
         ]);
+      }
+      if (data.type === "chat-agree" && data.sender !== myRole) {
+        setOpponentReady(true);
+      }
+      if (data.type === "chat-request" && data.sender !== myRole) {
+        setOpponentReady(false);
       }
     };
     socket.addEventListener("message", handleMessage);
@@ -59,12 +97,34 @@ const ChatPopup = ({ currentRound, onClose, socket }: ChatPopupProps) => {
     }
   }, [message, socket, myRole]);
 
-  // Allow Enter key to send
   const handleInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") sendMessage();
     },
     [sendMessage]
+  );
+
+  // Reset chat state on round change (keep opponentName)
+  useEffect(() => {
+    setOpponentReady(false);
+    setChatMessages([]);
+  }, [currentRound]);
+
+  // Chat status message
+  const chatStatus = useMemo(
+    () =>
+      opponentReady
+        ? (
+            <>
+              <span className="text-blue-400 font-bold">{opponentName}</span> is ready to chat with you
+            </>
+          )
+        : (
+            <>
+              <span className="text-blue-400 font-bold">{opponentName}</span> isn't ready to chat
+            </>
+          ),
+    [opponentReady, opponentName]
   );
 
   return (
@@ -88,6 +148,10 @@ const ChatPopup = ({ currentRound, onClose, socket }: ChatPopupProps) => {
     >
       <div className="text-xl font-bold mb-2 text-center">
         Chat - Round {currentRound}
+      </div>
+
+      <div className="mb-2 text-center text-white font-semibold">
+        {chatStatus}
       </div>
 
       <div className="h-48 overflow-y-auto bg-white/10 p-3 rounded-lg mb-4">

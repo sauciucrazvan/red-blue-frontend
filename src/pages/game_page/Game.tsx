@@ -436,6 +436,9 @@ export default function Game() {
                 }
               }}
               socket={wsRef.current!}
+              myRole={localStorage.getItem("role")!}
+              player1Name={data.player1_name}
+              player2Name={data.player2_name}
             />
           </div>
         )}
