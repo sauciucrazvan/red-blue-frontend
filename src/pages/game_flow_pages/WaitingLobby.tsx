@@ -51,13 +51,18 @@ export default function WaitingLobby() {
     if (data && data.game_state === "active") {
       navigate(`/game/${id}`);
     }
-    
+
     if (data && data.created_at) {
       const expDate = new Date(data.created_at);
       expDate.setMinutes(expDate.getMinutes() + 10);
 
-      setExpHours(expDate.getHours().toString().padStart(2, "0"));
-      setExpMinutes(expDate.getMinutes().toString().padStart(2, "0"));
+      // Converting to users' local timezone (hopefully)
+      const localExpDate = new Date(
+        expDate.getTime() + expDate.getTimezoneOffset() * 60000 * -1
+      );
+
+      setExpHours(localExpDate.getHours().toString().padStart(2, "0"));
+      setExpMinutes(localExpDate.getMinutes().toString().padStart(2, "0"));
     }
   }, [data]);
 
