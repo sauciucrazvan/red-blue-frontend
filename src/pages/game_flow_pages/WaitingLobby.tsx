@@ -48,6 +48,10 @@ export default function WaitingLobby() {
   }, [id, navigate]);
 
   useEffect(() => {
+    if (data && data.game_state === "active") {
+      navigate(`/game/${id}`);
+    }
+    
     if (data && data.created_at) {
       const expDate = new Date(data.created_at);
       expDate.setMinutes(expDate.getMinutes() + 10);
