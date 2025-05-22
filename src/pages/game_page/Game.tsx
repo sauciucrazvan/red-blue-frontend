@@ -100,6 +100,7 @@ export default function Game() {
           }
 
           if (wsData.type === "disconnect_event") {
+            setInfoMsg(wsData.player_name + " disconnected.");
             navigate(`/game/lobby/${id}`);
             return;
           }
@@ -153,15 +154,15 @@ export default function Game() {
     initializeWebSocket();
 
     // CLEANUP: close socket on unmount or id change
-    return () => {
-      wsRef.current?.close();
-      wsRef.current = null;
-    };
+    // return () => {
+    //   wsRef.current?.close();
+    //   wsRef.current = null;
+    // };
   }, [id, navigate]);
 
   useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
+    const handleBeforeUnload = () => {
+      //event.preventDefault(); stupid dialog, burn in hell!
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
         wsRef.current.send(
           JSON.stringify({
@@ -198,6 +199,7 @@ export default function Game() {
 
   // Reset chat state and send chat request on new chat round
   useEffect(() => {
+    if (wsRef.current?.readyState !== WebSocket.OPEN) return;
     if (data?.current_round === 4 || data?.current_round === 8) {
       wsRef.current?.send(JSON.stringify({ type: "chat-request" }));
       setShowChatRequest(true);

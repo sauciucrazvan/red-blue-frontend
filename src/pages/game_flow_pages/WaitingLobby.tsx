@@ -48,7 +48,12 @@ export default function WaitingLobby() {
   }, [id, navigate]);
 
   useEffect(() => {
-    if (data && data.game_state === "active") {
+    if (
+      data &&
+      data.game_state === "active" &&
+      data.player1_name &&
+      data.player2_name
+    ) {
       navigate(`/game/${id}`);
     }
 
