@@ -89,7 +89,17 @@ export default function Game() {
       ws.onmessage = (event) => {
         try {
           const wsData = JSON.parse(event.data);
-          if (wsData.message) setInfoMsg(wsData.message);
+
+          const chatTypes = [
+            "chat-message",
+            "chat-agree",
+            "chat-request",
+            "chat-decline",
+            "chat-close",
+          ];
+          if (!chatTypes.includes(wsData.type) && wsData.message) {
+            setInfoMsg(wsData.message);
+          }
 
           if (wsData.game_state === "finished") {
             navigate(
@@ -103,11 +113,6 @@ export default function Game() {
             setInfoMsg(wsData.player_name + " disconnected.");
             navigate(`/game/lobby/${id}`);
             return;
-          }
-
-          // --- Chat logic ---
-          if (wsData.type !== "chat-message" && wsData.message) {
-            setInfoMsg(wsData.message);
           }
 
           if (wsData.type === "chat-request") {
