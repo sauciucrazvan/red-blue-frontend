@@ -70,14 +70,16 @@ export default function WaitingLobby() {
       setExpHours(localExpDate.getHours().toString().padStart(2, "0"));
       setExpMinutes(localExpDate.getMinutes().toString().padStart(2, "0"));
 
-      const interval = setInterval(() => {
-        const now = new Date();
-        if (now >= localExpDate) {
-          clearInterval(interval);
-          toast.error("Lobby expired.");
-          navigate(`/`);
-        }
-      }, 10000);
+      let interval: any;
+      if (data.game_state === "waiting")
+        interval = setInterval(() => {
+          const now = new Date();
+          if (now >= localExpDate) {
+            clearInterval(interval);
+            toast.error("Lobby expired.");
+            navigate(`/`);
+          }
+        }, 10000);
     }
 
     if (data && data.game_state === "pause") {
@@ -94,6 +96,16 @@ export default function WaitingLobby() {
 
       setExpHours(localExpDate.getHours().toString().padStart(2, "0"));
       setExpMinutes(localExpDate.getMinutes().toString().padStart(2, "0"));
+
+      let interval: any;
+      interval = setInterval(() => {
+        const now = new Date();
+        if (now >= localExpDate) {
+          clearInterval(interval);
+          toast.error("Lobby expired.");
+          navigate(`/`);
+        }
+      }, 10000);
     }
   }, [data]);
 
