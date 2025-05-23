@@ -7,6 +7,10 @@ export default function GameStatusBadge({ status }: { status: string }) {
       color = "bg-green-500";
       textColor = "text-white";
       break;
+    case "abandoned":
+      color = "bg-red-700";
+      textColor = "text-white";
+      break;
     case "finished":
       color = "bg-red-500";
       textColor = "text-white";

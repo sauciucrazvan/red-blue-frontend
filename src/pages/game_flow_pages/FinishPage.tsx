@@ -41,7 +41,7 @@ export default function FinishPage() {
         }
 
         const _data = await res.json();
-        if (_data.game_state !== "finished")
+        if (_data.game_state !== "finished" && _data.game_state !== "abandoned")
           throw new Error("Game not finished");
 
         setData(_data);

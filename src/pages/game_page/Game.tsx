@@ -101,7 +101,10 @@ export default function Game() {
             setInfoMsg(wsData.message);
           }
 
-          if (wsData.game_state === "finished") {
+          if (
+            wsData.game_state === "finished" ||
+            wsData.game_state === "abandoned"
+          ) {
             navigate(
               `/game/summary/${id}?r=${
                 wsData.message?.includes("abandoned") ? "abandon" : "finish"
