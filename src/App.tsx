@@ -1,6 +1,7 @@
 import { lazy, useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
+import AdminLoginPage from "./pages/admin/AdminLoginPage.tsx";
 
 const Dashboard = lazy(() => import("./pages/game_flow_pages/Dashboard.tsx"));
 const Game = lazy(() => import("./pages/game_page/Game.tsx"));
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="/game/lobby/:id" element={<WaitingLobby />} />
         <Route path="/game/summary/:id" element={<FinishPage />} />
         <Route path="/game/join/:game_code" element={<JoinPage />} />
+        <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
