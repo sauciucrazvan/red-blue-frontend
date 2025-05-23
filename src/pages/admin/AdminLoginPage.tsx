@@ -33,16 +33,37 @@ export default function AdminLoginPage() {
   return (
     <>
       <div className="flex flex-col items-center justify-center h-screen bg-gray-900">
-        <h1 className="text-4xl text-white mb-8">Admin Login</h1>
-        <input
-          type="password"
-          placeholder="Enter password"
-          className="p-2 rounded-lg mb-4"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <h1 className="font-outfit text-4xl font-extrabold text-center mt-6 mb-4 bg-gradient-to-br from-[#D10000] from-50% to-[#027DFF] to-65% bg-clip-text text-transparent">
+          RED & BLUE.
+        </h1>
+
+        <h6 className="text-md text-gray-100/80 mb-4">
+          Login as an administrator.
+        </h6>
+
+        <div className="flex flex-col w-1/4 text-gray-200 gap-1">
+          Username
+          <input
+            type="text"
+            placeholder="Enter username"
+            disabled={true}
+            className="p-2 rounded-lg mb-4"
+            value={"admin"}
+          />
+        </div>
+
+        <div className="flex flex-col w-1/4 text-gray-200 gap-1">
+          Password
+          <input
+            type="password"
+            placeholder="Enter password"
+            className="p-2 rounded-lg mb-4 bg-gray-700 hover:bg-gray-800 focus:bg-gray-800 focus:outline-none"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
         <button
-          className="bg-blue-500 text-white p-2 rounded-lg"
+          className="bg-blue-500 text-white p-2 rounded-lg w-1/4"
           onClick={handleLogin}
         >
           Login
