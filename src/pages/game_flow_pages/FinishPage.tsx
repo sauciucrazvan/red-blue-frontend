@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import LoadingPage from "../system_pages/Loading";
 import ErrorPage from "../system_pages/ErrorPage";
 import { API_URL } from "../../config";
@@ -10,18 +10,11 @@ import { motion } from "framer-motion";
 export default function FinishPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const [showSummary, setShowSummary] = useState(false);
-
-  const reason = searchParams.get("r");
-  const message =
-    reason === "abandon"
-      ? "A player has abandoned the game."
-      : "The game has finished — well played!";
 
   useEffect(() => {
     const fetchGame = async () => {
@@ -123,7 +116,9 @@ export default function FinishPage() {
         transition={{ delay: 0.4, duration: 0.6 }}
         className="text-lg sm:text-xl font-light italic text-white/85 mb-12 text-center max-w-xl drop-shadow-sm"
       >
-        {message}
+        {data.game_state === "abandoned"
+          ? "A player has abandoned the game."
+          : "The game has finished — well played!"}
       </motion.p>
 
       {/* Player Cards */}

@@ -105,11 +105,7 @@ export default function Game() {
             wsData.game_state === "finished" ||
             wsData.game_state === "abandoned"
           ) {
-            navigate(
-              `/game/summary/${id}?r=${
-                wsData.message?.includes("abandoned") ? "abandon" : "finish"
-              }`
-            );
+            navigate(`/game/summary/${id}`);
           }
 
           if (wsData.type === "disconnect_event") {
@@ -283,7 +279,7 @@ export default function Game() {
       toast.error(`Failed to submit choice: ${error.message}`);
 
       if (error.message.includes("finished")) {
-        navigate(`/game/summary/${id}?r=finish`);
+        navigate(`/game/summary/${id}`);
       }
     }
   };
@@ -303,7 +299,7 @@ export default function Game() {
       console.error("Error abandoning the game:", error.message);
       setError(`Failed to submit choice: ${error.message}`);
     } finally {
-      navigate(`/game/summary/${id}?r=abandon`);
+      navigate(`/game/summary/${id}`);
     }
   };
 
