@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { API_URL, WS_URL } from "../../config";
-import { FaCopy } from "react-icons/fa6";
+import { FaCopy, FaLink } from "react-icons/fa6";
 import { motion } from "framer-motion";
 import LoadingPage from "../system_pages/Loading";
 import ErrorPage from "../system_pages/ErrorPage";
 import AnimatedDots from "../../components/AnimatedDots";
 import { toastErrorWithSound } from "../../components/toastWithSound";
+import { CgArrowLongRight } from "react-icons/cg";
 
 export default function WaitingLobby() {
   const navigate = useNavigate();
@@ -68,6 +69,15 @@ export default function WaitingLobby() {
 
       setExpHours(localExpDate.getHours().toString().padStart(2, "0"));
       setExpMinutes(localExpDate.getMinutes().toString().padStart(2, "0"));
+
+      const interval = setInterval(() => {
+        const now = new Date();
+        if (now >= localExpDate) {
+          clearInterval(interval);
+          toast.error("Lobby expired.");
+          navigate(`/`);
+        }
+      }, 10000);
     }
 
     if (data && data.game_state === "pause") {
@@ -155,18 +165,6 @@ export default function WaitingLobby() {
     }
   };
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(data.code);
-      toast.success("Copied to clipboard", {});
-    } catch (err) {
-      console.error("Failed to copy:", err);
-      toast.error(
-        "\u274C Failed to copy. Please check your browser settings or permissions."
-      );
-    }
-  };
-
   if (loading) return LoadingPage();
   if (error) return ErrorPage(error);
   if (!data) return ErrorPage("Failed to fetch data!");
@@ -179,36 +177,49 @@ export default function WaitingLobby() {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="bg-black bg-opacity-10 backdrop-blur-md border border-white border-opacity-30 rounded-2xl shadow-xl p-10 max-w-md w-full text-center space-y-6"
       >
-        <h2 className="text-2xl font-bold">
-          Waiting for the opponent{" "}
-          {data.game_state === "pause" && <span>to come back</span>}
+        <h2 className="text-xl font-bold">
+          Waiting for the opponent
+          {data.game_state === "pause" && <span> to come back</span>}
           <AnimatedDots />
+          <p className="text-xs font-normal text-white italic">
+            The game will start once{" "}
+            {data.game_state === "pause" && "again when"} your opponent joins.
+          </p>
         </h2>
+
         <p className="text-lg">
           You are playing as <b>{localStorage.getItem("player_name")}</b>.
           <br />
-          Share this code with your opponent:
+          Share this with your opponent:
         </p>
-        <div
-          onClick={copyToClipboard}
-          className="inline-flex items-center gap-1 cursor-pointer text-lg text-white font-bold hover:text-white/80 transition"
-          title="Click to copy"
-        >
-          {data.code} <FaCopy />
-        </div>
 
-        <div className="text-sm text-white-400">
-          <p>or send this link to your opponent:</p>
-          <div className="flex items-center mt-2">
+        <div className="text-sm text-white-400 flex flex-col items-center justify-between gap-2 w-full mt-4">
+          <div className="flex flex-row items-center flex-1 min-w-0 ">
             <input
               type="text"
-              value={`${window.location.origin}/game/join/${
-                data.code
-              }?ref=${localStorage.getItem("player_name")}`}
+              value={data.code}
               disabled
-              className="bg-gray-800 text-white font-bold px-2 py-1 rounded-l-md w-full cursor-default h-10 bg-opacity-40"
+              className="bg-gray-800 text-white text-center font-bold px-2 py-1 rounded-l-md w-full cursor-default h-10 bg-opacity-40 min-w-0"
               readOnly
             />
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(data.code);
+                  toast.success("Code copied to clipboard");
+                } catch (err) {
+                  toast.error("Failed to copy code");
+                }
+              }}
+              className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-r-md flex items-center h-10 transition ease-in-out duration-1000"
+              title="Copy invite code"
+              type="button"
+            >
+              <FaCopy />
+            </button>
+          </div>
+          <div className="flex-shrink-0 px-2 text-center">⸻ OR ⸻</div>
+          <div className="flex flex-1 justify-end w-[65%]">
             <button
               onClick={async () => {
                 try {
@@ -222,16 +233,16 @@ export default function WaitingLobby() {
                   toast.error("Failed to copy link");
                 }
               }}
-              className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-r-md flex items-center h-10"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold p-2 rounded-md flex gap-1 items-center justify-center h-10 w-full transition ease-in-out duration-1000"
               title="Copy invite link"
               type="button"
             >
-              <FaCopy />
+              <FaLink /> Copy invite link
             </button>
           </div>
         </div>
 
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex flex-col items-center space-y-1">
           <div className="text-center">
             <span className="text-md text-white non-italic">
               The lobby will expire at{" "}
@@ -242,17 +253,15 @@ export default function WaitingLobby() {
                 ? "if he does not join back."
                 : "if no one joins."}
             </span>
-            <p className="text-xs text-white italic">
-              The game will start once{" "}
-              {data.game_state === "pause" && "again when"} your opponent joins.
-            </p>
           </div>
           {data.game_state === "waiting" && (
             <button
+              className="mt-0 underline text-white hover:text-gray-300"
               onClick={destroyGame}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded shadow-md"
             >
-              Cancel & Return
+              <span className="text-white text-sm hover:text-orange-600/80 inline-flex items-center gap-1 hover:gap-2 transition ease-in-out duration-1000">
+                Return to Main Menu <CgArrowLongRight />
+              </span>
             </button>
           )}
         </div>

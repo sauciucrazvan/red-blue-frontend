@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "../../config";
 import { toastErrorWithSound } from "../../components/toastWithSound";
+import { CgArrowLongRight } from "react-icons/cg";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -128,7 +129,9 @@ export default function Dashboard() {
             className="mt-0 underline text-white hover:text-gray-300"
             onClick={() => setShowHowToPlay(true)}
           >
-            Don't know how to play?
+            <span className="text-white hover:text-gray-100/80 inline-flex items-center gap-1 hover:gap-2 transition ease-in-out duration-1000">
+              Don't know how to play? <CgArrowLongRight />
+            </span>
           </button>
         </motion.div>
 
