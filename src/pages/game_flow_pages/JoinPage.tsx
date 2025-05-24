@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { API_URL } from "../../config";
@@ -11,6 +11,10 @@ export default function JoinPage() {
   const navigate = useNavigate();
 
   const referee = searchParams.get("ref");
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const submitBtnRef = useRef<HTMLButtonElement>(null);
 
   const [playerName, setPlayerName] = useState(
     localStorage.getItem("player_name") ?? ""
@@ -58,6 +62,14 @@ export default function JoinPage() {
     }
   };
 
+  useEffect(() => {
+    if (!playerName && inputRef.current) {
+      inputRef.current.focus();
+    } else if (playerName && submitBtnRef.current) {
+      submitBtnRef.current.focus();
+    }
+  }, []);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 to-blue-700 text-gray-800 p-6">
       <div className="w-full max-w-2xl flex flex-col items-center">
@@ -98,31 +110,42 @@ export default function JoinPage() {
             )}
           </section>
 
-          <input
-            type="text"
-            className="w-full bg-gray-100 border border-gray-400 rounded p-2 text-center"
-            placeholder="Enter your name"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-          />
+          <form
+            className="w-full flex flex-col gap-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              joinGame();
+            }}
+          >
 
-          <div className="w-full flex flex-row items-center justify-center gap-4">
-            <button
-              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded w-[50%]"
-              onClick={joinGame}
-            >
-              Accept Challenge!
-            </button>
-            {
-              // don't know if this is needed, but keeping it commented for now
-              /* <a
-              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded"
-              href="/"
-            >
-              Go to Dashboard
-            </a> */
-            }
-          </div>
+            <input
+              ref={inputRef}
+              type="text"
+              className="w-full bg-gray-100 border border-gray-400 rounded p-2 text-center"
+              placeholder="Enter your name"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+            />
+
+            <div className="w-full flex flex-row items-center justify-center gap-4">
+              <button
+                ref={submitBtnRef}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded w-[50%] focus:outline-none"
+                type="submit"
+              >
+                Accept Challenge!
+              </button>
+              {
+                // don't know if this is needed, but keeping it commented for now
+                /* <a
+                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded"
+                href="/"
+              >
+                Go to Dashboard
+              </a> */
+              }
+            </div>
+          </form>
         </motion.div>
       </div>
     </div>
