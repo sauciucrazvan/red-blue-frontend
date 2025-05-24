@@ -1,4 +1,4 @@
-import { useState , useEffect} from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "../../config";
@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [joinGameCode, setJoinGameCode] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const createGame = async () => {
     if (playerName.length < 3 || playerName.length > 16) {
@@ -74,7 +75,7 @@ export default function Dashboard() {
     }
   };
 
-  useEffect( () => {
+  useEffect(() => {
     if (!showJoinModal) return;
     const handleESC = (e: KeyboardEvent) => {
       if (e.key === "Escape") setShowJoinModal(false);
@@ -82,7 +83,13 @@ export default function Dashboard() {
     window.addEventListener("keydown", handleESC);
     return () => window.removeEventListener("keydown", handleESC);
   }, [showJoinModal]);
-  
+
+  useEffect(() => {
+    if (showJoinModal && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [showJoinModal, inputRef]);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 to-blue-700 text-gray-800 p-6">
       <div className="w-full max-w-2xl flex flex-col items-center">
@@ -168,16 +175,17 @@ export default function Dashboard() {
                   }}
                 >
                   <input
-                    type="text"
                     className="w-full border border-gray-400 rounded text-gray-800 p-2 text-center mb-4"
+                    ref = {inputRef}
+                    type="text"
                     placeholder="Game code"
                     value={joinGameCode}
                     onChange={(e) => setJoinGameCode(e.target.value)}
                   />
                   <div className="flex justify-between">
                     <button
-                      type="button"
                       className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
+                      type="button"
                       onClick={() => setShowJoinModal(false)}
                     >
                       Cancel
