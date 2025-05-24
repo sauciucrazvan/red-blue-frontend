@@ -104,6 +104,18 @@ const ChatPopup = ({
     [sendMessage]
   );
 
+  useEffect(() => {
+    const handleESC = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleESC);
+    return () => {
+      window.removeEventListener("keydown", handleESC);
+    };
+  }, [onClose]);
+
   // Reset chat state on round change (keep opponentName)
   useEffect(() => {
     setOpponentReady(false);
