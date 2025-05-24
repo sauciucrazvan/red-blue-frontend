@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "../../config";
@@ -74,6 +74,15 @@ export default function Dashboard() {
     }
   };
 
+  useEffect( () => {
+    if (!showJoinModal) return;
+    const handleESC = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowJoinModal(false);
+    };
+    window.addEventListener("keydown", handleESC);
+    return () => window.removeEventListener("keydown", handleESC);
+  }, [showJoinModal]);
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 to-blue-700 text-gray-800 p-6">
       <div className="w-full max-w-2xl flex flex-col items-center">
