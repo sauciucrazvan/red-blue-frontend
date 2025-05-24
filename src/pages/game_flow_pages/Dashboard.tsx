@@ -152,27 +152,35 @@ export default function Dashboard() {
                 transition={{ duration: 0.4 }}
               >
                 <h2 className="text-xl font-bold mb-4">Enter Game Code</h2>
-                <input
-                  type="text"
-                  className="w-full border border-gray-400 rounded text-gray-800 p-2 text-center mb-4"
-                  placeholder="Game code"
-                  value={joinGameCode}
-                  onChange={(e) => setJoinGameCode(e.target.value)}
-                />
-                <div className="flex justify-between">
-                  <button
-                    className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
-                    onClick={() => setShowJoinModal(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-                    onClick={joinGame}
-                  >
-                    Join Game
-                  </button>
-                </div>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    joinGame();
+                  }}
+                >
+                  <input
+                    type="text"
+                    className="w-full border border-gray-400 rounded text-gray-800 p-2 text-center mb-4"
+                    placeholder="Game code"
+                    value={joinGameCode}
+                    onChange={(e) => setJoinGameCode(e.target.value)}
+                  />
+                  <div className="flex justify-between">
+                    <button
+                      type="button"
+                      className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
+                      onClick={() => setShowJoinModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+                    >
+                      Join Game
+                    </button>
+                  </div>
+                </form>
               </motion.div>
             </motion.div>
           )}
