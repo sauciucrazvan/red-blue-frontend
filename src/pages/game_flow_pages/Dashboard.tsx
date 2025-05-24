@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const createGame = async () => {
     if (playerName.length < 3 || playerName.length > 16) {
@@ -85,6 +86,18 @@ export default function Dashboard() {
   }, [showJoinModal]);
 
   useEffect(() => {
+    if (!showHowToPlay && buttonRef.current) {
+      buttonRef.current.blur();
+    }
+    if (!showHowToPlay) return; 
+    const handleESC = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowHowToPlay(false);
+    };
+    window.addEventListener("keydown", handleESC);
+    return () => window.removeEventListener("keydown", handleESC);
+  }, [showHowToPlay]);
+
+  useEffect(() => {
     if (showJoinModal && inputRef.current) {
       inputRef.current.focus();
     }
@@ -144,6 +157,7 @@ export default function Dashboard() {
           <button
             className="mt-0 underline text-white hover:text-gray-300"
             onClick={() => setShowHowToPlay(true)}
+            ref={buttonRef}
           >
             <span className="text-white hover:text-gray-100/80 inline-flex items-center gap-1 hover:gap-2 transition ease-in-out duration-1000">
               Don't know how to play? <CgArrowLongRight />
@@ -281,12 +295,18 @@ export default function Dashboard() {
                   <span className="text-red-600 font-bold">lost</span>.
                 </p>
                 <div className="mt-6 text-center">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                    }}
+                    >
                   <button
                     className="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded"
                     onClick={() => setShowHowToPlay(false)}
                   >
                     Close
                   </button>
+                  </form>
                 </div>
               </motion.div>
             </motion.div>
