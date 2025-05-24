@@ -182,19 +182,25 @@ const ChatPopup = ({
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleInputKeyDown}
           placeholder="Type a message..."
-          className="w-full p-2 rounded bg-white/10 text-white placeholder-gray-300 mb-2 outline-none"
-          autoFocus
+          className={`w-full p-2 rounded bg-white/10 text-white placeholder-gray-300 mb-2 outline-none 
+            ${!opponentReady ? "opacity-50 cursor-not-allowed" : ""}`}
+            autoFocus
+            disabled={!opponentReady}
         />
         <div className="flex gap-2 mb-2">
           <button
             onClick={onClose}
             className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition"
+            type="button"
           >
             Close Chat
           </button>
           <button
             onClick={sendMessage}
-            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition"
+            className={`flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition 
+              ${!opponentReady ? "opacity-50 cursor-not-allowed" : ""}`}
+              disabled={!opponentReady}
+              type="button"
           >
             Send
           </button>
