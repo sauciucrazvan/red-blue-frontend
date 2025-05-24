@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Round {
@@ -30,6 +30,18 @@ const GameSummary: React.FC<GameSummaryProps> = ({
       onClose();
     }, 500);
   };
+
+  useEffect(() => {
+    const handleESC = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    }
+    window.addEventListener("keydown", handleESC);
+    return () => {
+      window.removeEventListener("keydown", handleESC);
+    };
+  }, []);
 
   return (
     <AnimatePresence>
