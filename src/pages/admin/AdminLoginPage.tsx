@@ -41,7 +41,7 @@ export default function AdminLoginPage() {
           Login as an administrator.
         </h6>
 
-        <div className="flex flex-col w-1/4 text-gray-200 gap-1">
+        <div className="flex flex-col w-1/2 md:w-1/4 text-gray-200 gap-1">
           Username
           <input
             type="text"
@@ -52,7 +52,7 @@ export default function AdminLoginPage() {
           />
         </div>
 
-        <div className="flex flex-col w-1/4 text-gray-200 gap-1">
+        <div className="flex flex-col w-1/2 md:w-1/4 text-gray-200 gap-1">
           Password
           <input
             type="password"
@@ -60,10 +60,15 @@ export default function AdminLoginPage() {
             className="p-2 rounded-lg mb-4 bg-gray-700 hover:bg-gray-800 focus:bg-gray-800 focus:outline-none"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleLogin();
+              }
+            }}
           />
         </div>
         <button
-          className="bg-blue-500 text-white p-2 rounded-lg w-1/4"
+          className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg w-1/4 transition ease-in-out duration-300"
           onClick={handleLogin}
         >
           Login
