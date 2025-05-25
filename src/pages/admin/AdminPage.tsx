@@ -150,7 +150,7 @@ export default function AdminPage() {
               <b className="text-xl inline-flex gap-1 items-center">
                 <MdAlignHorizontalLeft /> Filters
               </b>
-              <div className="flex flex-col sm:flex-row gap-4 mt-2 w-full justify-center items-end">
+              <div className="flex flex-col sm:flex-row gap-4 mt-2 w-full justify-center items-start sm:items-end">
                 <div className="flex flex-col flex-1">
                   <label
                     className="text-sm text-gray-300 mb-1"
