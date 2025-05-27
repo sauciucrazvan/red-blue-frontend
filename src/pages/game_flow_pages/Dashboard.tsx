@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "../../config";
 import { toastErrorWithSound } from "../../components/toastWithSound";
 import { CgArrowLongRight } from "react-icons/cg";
+import AnimatedDots from "../../components/AnimatedDots";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function Dashboard() {
   const [joinGameCode, setJoinGameCode] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const [lastGame, setLastGame] = useState<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -35,6 +37,7 @@ export default function Dashboard() {
       localStorage.setItem("player_name", playerName);
       localStorage.setItem("role", data.role);
       localStorage.setItem("token", data.token);
+      localStorage.setItem("game_id", data.game_id);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
       toastErrorWithSound(err.message || "Something went wrong.");
@@ -70,11 +73,43 @@ export default function Dashboard() {
       localStorage.setItem("player_name", playerName);
       localStorage.setItem("role", data.role);
       localStorage.setItem("token", data.token);
+      localStorage.setItem("game_id", data.game_id);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
       toastErrorWithSound(err.message || "Something went wrong.");
     }
   };
+
+  useEffect(() => {
+    const fetchLastGame = async () => {
+      const last_game_id = localStorage.getItem("game_id");
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(API_URL + `api/v1/game/${last_game_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+      });
+
+      if (!response.ok) {
+        const errorDetail = await response.json();
+        localStorage.removeItem("game_id");
+        if (response.status === 404) return;
+        throw new Error(`Error: ${errorDetail.detail || response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (data.game_state !== "pause") {
+        localStorage.removeItem("game_id");
+        return;
+      }
+      setLastGame(data);
+    };
+
+    fetchLastGame();
+  }, []);
 
   useEffect(() => {
     if (!showJoinModal) return;
@@ -89,7 +124,7 @@ export default function Dashboard() {
     if (!showHowToPlay && buttonRef.current) {
       buttonRef.current.blur();
     }
-    if (!showHowToPlay) return; 
+    if (!showHowToPlay) return;
     const handleESC = (e: KeyboardEvent) => {
       if (e.key === "Escape") setShowHowToPlay(false);
     };
@@ -154,6 +189,25 @@ export default function Dashboard() {
             </button>
           </div>
 
+          {lastGame && (
+            <section className="text-white text-md font-semibold flex flex-col items-center gap-2 rounded-md px-6 py-2 bg-gray-800 bg-opacity-25">
+              <div className="flex flex-col items-center">
+                <span>You've been disconnected from a game!</span>
+                <small className="font-normal text-gray-300">
+                  Your opponent is waiting for you to join back
+                  <AnimatedDots />
+                </small>
+              </div>
+
+              <a
+                href={`${window.location.origin}/game/join/` + lastGame.code}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-md text-sm"
+              >
+                Reconnect
+              </a>
+            </section>
+          )}
+
           <button
             className="mt-0 underline text-white hover:text-gray-300"
             onClick={() => setShowHowToPlay(true)}
@@ -190,7 +244,7 @@ export default function Dashboard() {
                 >
                   <input
                     className="w-full border border-gray-400 rounded text-gray-800 p-2 text-center mb-4"
-                    ref = {inputRef}
+                    ref={inputRef}
                     type="text"
                     placeholder="Game code"
                     value={joinGameCode}
@@ -299,13 +353,13 @@ export default function Dashboard() {
                     onSubmit={(e) => {
                       e.preventDefault();
                     }}
-                    >
-                  <button
-                    className="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded"
-                    onClick={() => setShowHowToPlay(false)}
                   >
-                    Close
-                  </button>
+                    <button
+                      className="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded"
+                      onClick={() => setShowHowToPlay(false)}
+                    >
+                      Close
+                    </button>
                   </form>
                 </div>
               </motion.div>

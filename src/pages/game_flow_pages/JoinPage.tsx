@@ -56,6 +56,7 @@ export default function JoinPage() {
       localStorage.setItem("player_name", playerName);
       localStorage.setItem("role", data.role);
       localStorage.setItem("token", data.token);
+      localStorage.setItem("game_id", data.game_id);
       navigate(`/game/${data.game_id}`);
     } catch (err: any) {
       toastErrorWithSound(err.message || "Something went wrong.");
@@ -117,7 +118,6 @@ export default function JoinPage() {
               joinGame();
             }}
           >
-
             <input
               ref={inputRef}
               type="text"
