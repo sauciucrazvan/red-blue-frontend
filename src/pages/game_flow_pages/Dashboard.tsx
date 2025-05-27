@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "../../config";
 import { toastErrorWithSound } from "../../components/toastWithSound";
-import { CgArrowLongRight } from "react-icons/cg";
 import AnimatedDots from "../../components/AnimatedDots";
 
 export default function Dashboard() {
@@ -208,15 +207,24 @@ export default function Dashboard() {
             </section>
           )}
 
-          <button
-            className="mt-0 underline text-white hover:text-gray-300"
-            onClick={() => setShowHowToPlay(true)}
-            ref={buttonRef}
-          >
-            <span className="text-white hover:text-gray-100/80 inline-flex items-center gap-1 hover:gap-2 transition ease-in-out duration-1000">
-              Don't know how to play? <CgArrowLongRight />
-            </span>
-          </button>
+          <div className="flex flex-row items-center gap-2 text-white">
+            <a
+              href="/about"
+              className="hover:text-gray-100/80 transition ease-in-out duration-1000"
+            >
+              About
+            </a>
+            •
+            <button
+              className="mt-0 underline text-white hover:text-gray-300"
+              onClick={() => setShowHowToPlay(true)}
+              ref={buttonRef}
+            >
+              <span className="text-white hover:text-gray-100/80 inline-flex items-center gap-1 transition ease-in-out duration-1000">
+                Don't know how to play?
+              </span>
+            </button>
+          </div>
         </motion.div>
 
         {/* Join Game Modal */}

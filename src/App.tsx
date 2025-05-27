@@ -12,6 +12,7 @@ const JoinPage = lazy(() => import("./pages/game_flow_pages/JoinPage.tsx"));
 const FinishPage = lazy(() => import("./pages/game_flow_pages/FinishPage.tsx"));
 const AdminPage = lazy(() => import("./pages/admin/AdminPage.tsx"));
 const AdminLoginPage = lazy(() => import("./pages/admin/AdminLoginPage.tsx"));
+const AboutPage = lazy(() => import("./pages/system_pages/AboutPage.tsx"));
 
 function ToastCleanup() {
   const location = useLocation();
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/game/join/:game_code" element={<JoinPage />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
