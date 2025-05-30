@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "../../config";
 import { toastErrorWithSound } from "../../components/toastWithSound";
 import AnimatedDots from "../../components/AnimatedDots";
+import PublicGamesTable from "./components/PublicGamesTable";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ export default function Dashboard() {
   );
   const [joinGameCode, setJoinGameCode] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showJoinOptionsModal, setShowJoinOptionsModal] = useState(false);
+  const [showPublicGamesModal, setShowPublicGamesModal] = useState(false);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [lastGame, setLastGame] = useState<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -120,6 +123,15 @@ export default function Dashboard() {
   }, [showJoinModal]);
 
   useEffect(() => {
+    if (!showJoinOptionsModal) return;
+    const handleESC = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowJoinOptionsModal(false);
+    };
+    window.addEventListener("keydown", handleESC);
+    return () => window.removeEventListener("keydown", handleESC);
+  }, [showJoinOptionsModal]);
+
+  useEffect(() => {
     if (!showHowToPlay && buttonRef.current) {
       buttonRef.current.blur();
     }
@@ -182,9 +194,9 @@ export default function Dashboard() {
             </button>
             <button
               className="w-1/2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded"
-              onClick={() => setShowJoinModal(true)}
+              onClick={() => setShowJoinOptionsModal(true)}
             >
-              Enter Game Code
+              Join a Game
             </button>
           </div>
 
@@ -226,6 +238,56 @@ export default function Dashboard() {
             </button>
           </div>
         </motion.div>
+
+        {/* Join Options Modal */}
+        <AnimatePresence>
+          {showJoinOptionsModal && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                className="bg-black bg-opacity-20 backdrop-blur-md rounded p-6 text-white shadow-lg w-full max-w-sm"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <h2 className="text-xl font-bold mb-4 text-center">
+                  Join a Game
+                </h2>
+                <div className="flex flex-col gap-4">
+                  <button
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+                    onClick={() => {
+                      setShowJoinOptionsModal(false);
+                      setShowJoinModal(true);
+                    }}
+                  >
+                    Join via a code
+                  </button>
+                  <button
+                    className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded"
+                    onClick={() => {
+                      setShowJoinOptionsModal(false);
+                      setShowPublicGamesModal(true);
+                    }}
+                  >
+                    Join a public lobby
+                  </button>
+                  <button
+                    className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
+                    onClick={() => setShowJoinOptionsModal(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Join Game Modal */}
         <AnimatePresence>
@@ -274,6 +336,46 @@ export default function Dashboard() {
                     </button>
                   </div>
                 </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Public Games Modal */}
+        <AnimatePresence>
+          {showPublicGamesModal && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                className="bg-black bg-opacity-20 backdrop-blur-md rounded p-6 text-white shadow-lg w-full max-w-lg"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <h2 className="text-xl font-bold mb-4 text-center">
+                  Public Lobbies
+                </h2>
+                <PublicGamesTable
+                  onClose={() => setShowPublicGamesModal(false)}
+                  onJoin={(code: string) => {
+                    setJoinGameCode(code);
+                    setShowPublicGamesModal(false);
+                    setShowJoinModal(true);
+                  }}
+                />
+                <div className="mt-4 flex justify-center">
+                  <button
+                    className="bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-2 px-4 rounded"
+                    onClick={() => setShowPublicGamesModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
               </motion.div>
             </motion.div>
           )}
