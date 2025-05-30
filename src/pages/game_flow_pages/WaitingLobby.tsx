@@ -286,27 +286,25 @@ export default function WaitingLobby() {
         <div className="flex flex-col items-center space-y-1">
           {data.game_state === "waiting" && (
             <>
-              <span className="font-bold">LOBBY TYPE</span>
-              <div className="flex flex-row items-center justify-center gap-0 text-center rounded-md bg-gray-600 bg-opacity-30 p-2">
+              <div className="flex flex-row items-center justify-center gap-2 text-center rounded-lg bg-gray-800 bg-opacity-30 p-2">
+                <span className="text-sm">Make lobby private</span>
                 <button
-                  className={`${
-                    lobbyType === "public"
-                      ? "bg-orange-500 hover:bg-orange-600"
-                      : "bg-gray-700 hover:bg-gray-600"
-                  } text-white text-sm px-4 py-1 rounded-l-md transition ease-in-out duration-300`}
+                  className={`relative w-10 h-5 rounded-full transition-colors duration-300 focus:outline-none ${
+                    lobbyType === "private" ? "bg-orange-500" : "bg-gray-700"
+                  }`}
                   onClick={handleLobbyTypeChange}
+                  aria-label="Toggle lobby type"
+                  type="button"
                 >
-                  Public
-                </button>
-                <button
-                  className={`${
-                    lobbyType === "private"
-                      ? "bg-orange-500 hover:bg-orange-600"
-                      : "bg-gray-700 hover:bg-gray-600"
-                  } text-white text-sm px-4 py-1 rounded-r-md transition ease-in-out duration-300`}
-                  onClick={handleLobbyTypeChange}
-                >
-                  Private
+                  <span
+                    className={`absolute top-1 left-1 w-3 h-3 rounded-full bg-white shadow-md transition-transform duration-300`}
+                    style={{
+                      transform:
+                        lobbyType === "private"
+                          ? "translateX(20px)"
+                          : "translateX(0)",
+                    }}
+                  />
                 </button>
               </div>
             </>
