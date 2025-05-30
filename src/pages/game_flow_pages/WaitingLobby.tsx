@@ -16,6 +16,7 @@ export default function WaitingLobby() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
+  const [lobbyType, setLobbyType] = useState<string>("private");
 
   const [expHours, setExpHours] = useState<string>("00");
   const [expMinutes, setExpMinutes] = useState<string>("00");
@@ -177,6 +178,34 @@ export default function WaitingLobby() {
     }
   };
 
+  const handleLobbyTypeChange = () => {
+    setLobbyType((prevType) => (prevType === "public" ? "private" : "public"));
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.error("Invalid token. Please log in again.");
+      return;
+    }
+
+    fetch(`${API_URL}api/v1/game/${id}/change_visibility`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(response.statusText);
+        return response.json();
+      })
+      .then((data) => {
+        toast.success(data.message || "Lobby type changed successfully.");
+      })
+      .catch((err) => {
+        toastErrorWithSound(err.message || "Failed to change lobby type.");
+      });
+  };
+
   if (loading) return LoadingPage();
   if (error) return ErrorPage(error);
   if (!data) return ErrorPage("Failed to fetch data!");
@@ -255,6 +284,33 @@ export default function WaitingLobby() {
         </div>
 
         <div className="flex flex-col items-center space-y-1">
+          {data.game_state === "waiting" && (
+            <>
+              <span className="font-bold">LOBBY TYPE</span>
+              <div className="flex flex-row items-center justify-center gap-0 text-center rounded-md bg-gray-600 bg-opacity-30 p-2">
+                <button
+                  className={`${
+                    lobbyType === "public"
+                      ? "bg-orange-500 hover:bg-orange-600"
+                      : "bg-gray-700 hover:bg-gray-600"
+                  } text-white text-sm px-4 py-1 rounded-l-md transition ease-in-out duration-300`}
+                  onClick={handleLobbyTypeChange}
+                >
+                  Public
+                </button>
+                <button
+                  className={`${
+                    lobbyType === "private"
+                      ? "bg-orange-500 hover:bg-orange-600"
+                      : "bg-gray-700 hover:bg-gray-600"
+                  } text-white text-sm px-4 py-1 rounded-r-md transition ease-in-out duration-300`}
+                  onClick={handleLobbyTypeChange}
+                >
+                  Private
+                </button>
+              </div>
+            </>
+          )}
           <div className="text-center">
             <span className="text-md text-white non-italic">
               The lobby will expire at{" "}
