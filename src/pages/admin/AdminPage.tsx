@@ -118,7 +118,7 @@ export default function AdminPage() {
         </p>
         <div className="pt-4"></div>
         <section className="flex flex-col lg:flex-row items-start justify-center gap-1 w-[90%]">
-          <div className="mb-2 bg-gray-800 w-full p-4 rounded-md text-white flex flex-col lg:max-w-[34%]">
+          <div className="mb-2 bg-gray-800 w-full p-4 rounded-md text-white flex flex-col lg:max-w-[20%]">
             <label className="text-sm text-white mb-4" htmlFor="actions">
               <b className="text-xl inline-flex gap-1 items-center">
                 <MdSettings /> Actions
@@ -146,7 +146,7 @@ export default function AdminPage() {
             </div>
           </div>
           <div className="flex flex-col flex-1 w-full items-center">
-            <div className="bg-gray-800 w-full max-w-3xl p-4 rounded-t-md text-white flex flex-col items-start">
+            <div className="bg-gray-800 w-full p-4 rounded-t-md text-white flex flex-col items-start">
               <b className="text-xl inline-flex gap-1 items-center">
                 <MdAlignHorizontalLeft /> Filters
               </b>
@@ -228,7 +228,7 @@ export default function AdminPage() {
               </p>
             ) : data ? (
               <>
-                <div className="w-full max-w-3xl overflow-x-auto mx-auto">
+                <div className="w-full overflow-x-auto mx-auto">
                   <div className="bg-gray-800 p-4 text-white text-center flex flex-col">
                     <b className="text-xl inline-flex gap-1 items-center text-white">
                       <MdHistory /> Game History
