@@ -287,10 +287,10 @@ export default function WaitingLobby() {
           {data.game_state === "waiting" && (
             <>
               <div className="flex flex-row items-center justify-center gap-2 text-center rounded-lg bg-gray-800 bg-opacity-30 p-2">
-                <span className="text-sm">Make lobby private</span>
+                <span className="text-sm">Make lobby public</span>
                 <button
                   className={`relative w-10 h-5 rounded-full transition-colors duration-300 focus:outline-none ${
-                    lobbyType === "private" ? "bg-orange-500" : "bg-gray-700"
+                    lobbyType === "public" ? "bg-orange-500" : "bg-gray-700"
                   }`}
                   onClick={handleLobbyTypeChange}
                   aria-label="Toggle lobby type"
@@ -300,7 +300,7 @@ export default function WaitingLobby() {
                     className={`absolute top-1 left-1 w-3 h-3 rounded-full bg-white shadow-md transition-transform duration-300`}
                     style={{
                       transform:
-                        lobbyType === "private"
+                        lobbyType === "public"
                           ? "translateX(20px)"
                           : "translateX(0)",
                     }}
