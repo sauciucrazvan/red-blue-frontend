@@ -1,6 +1,13 @@
 import { FaGithub, FaExternalLinkAlt, FaUsers, FaArrowLeft, FaStar, FaPalette } from "react-icons/fa";
 import { motion } from "framer-motion";
+import type { Transition, Variants } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+
+const baseSpring = {
+  type: "spring",
+  stiffness: 80,
+  damping: 18,
+} satisfies Transition;
 
 const fadeIn = {
   hidden: { opacity: 0, y: 32 },
@@ -8,14 +15,12 @@ const fadeIn = {
     opacity: 1,
     y: 0,
     transition: {
+      ...baseSpring,
       delay: i * 0.12,
       duration: 0.5,
-      type: "spring",
-      stiffness: 80,
-      damping: 18,
     },
   }),
-};
+} satisfies Variants;
 
 const slideLeft = {
   hidden: { opacity: 0, x: -40 },
@@ -23,13 +28,11 @@ const slideLeft = {
     opacity: 1,
     x: 0,
     transition: {
+      ...baseSpring,
       duration: 0.5,
-      type: "spring",
-      stiffness: 80,
-      damping: 18,
     },
   },
-};
+} satisfies Variants;
 
 const slideRight = {
   hidden: { opacity: 0, x: 40 },
@@ -37,13 +40,11 @@ const slideRight = {
     opacity: 1,
     x: 0,
     transition: {
+      ...baseSpring,
       duration: 0.5,
-      type: "spring",
-      stiffness: 80,
-      damping: 18,
     },
   },
-};
+} satisfies Variants;
 
 export default function AboutPage() {
   const navigate = useNavigate();
